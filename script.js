@@ -446,6 +446,45 @@ window.onload = async () => {
         showQuestion();
     });
 
+    // --- OTA UPDATE LISTENER (Electron) ---
+    if (window.api && window.api.onUpdateAvailable) {
+        window.api.onUpdateAvailable((data) => {
+            const updateModal = document.getElementById('updateModal');
+            const newVersionDisplay = document.getElementById('newVersionDisplay');
+            const currentVersionDisplay = document.getElementById('currentVersionDisplay');
+            const updateLink = document.getElementById('updateLink');
+
+            if (updateModal) {
+                if (newVersionDisplay) newVersionDisplay.textContent = data.version;
+                // Get current version from appConfig or fallback
+                const currentVer = typeof APP_VERSION !== 'undefined' ? APP_VERSION : "1.0.0";
+                if (currentVersionDisplay) currentVersionDisplay.textContent = currentVer;
+
+                if (updateLink) {
+                    // Update button behavior: Trigger background update
+                    updateLink.href = "#"; // Prevent external link
+                    updateLink.onclick = async (e) => {
+                        e.preventDefault();
+                        updateLink.innerHTML = "<span>🔄</span> Güncelleniyor...";
+                        updateLink.style.pointerEvents = "none";
+                        updateLink.style.opacity = "0.7";
+
+                        const result = await window.api.startUpdate();
+                        if (!result.success) {
+                            alert("Güncelleme sırasında bir hata oluştu: " + result.error);
+                            updateLink.innerHTML = "<span>⚠️</span> Tekrar Dene";
+                            updateLink.style.pointerEvents = "auto";
+                            updateLink.style.opacity = "1";
+                        }
+                        // If success, main.js will restart the app
+                    };
+                }
+
+                updateModal.classList.remove('hidden');
+            }
+        });
+    }
+
     // ✨ YENİ: Alt + 1 ile Veritabanı Sıfırlama Kısayolu (MODAL İLE GÜNCELLENDİ)
     // --- GENEL ŞİFRE MODAL YÖNETİMİ ---
 
