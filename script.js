@@ -224,13 +224,17 @@ window.onload = async () => {
             item.classList.add('active');
 
             const target = item.getAttribute('data-target');
+            const isMobile = window.innerWidth <= 768 || (window.Capacitor && window.Capacitor.isNativePlatform());
 
             // Hide All Views
             if (homeGridContainer) homeGridContainer.classList.add('hidden');
             if (loginView) loginView.classList.add('hidden');
             if (leaderboardWrapper) leaderboardWrapper.classList.add('hidden');
             if (aboutView) aboutView.classList.add('hidden');
-            if (settingsMenu) settingsMenu.classList.add('hidden');
+            if (settingsMenu) {
+                settingsMenu.classList.add('hidden');
+                settingsMenu.classList.remove('active');
+            }
 
             if (target === 'home') {
                 if (homeGridContainer) homeGridContainer.classList.remove('hidden');
@@ -239,13 +243,22 @@ window.onload = async () => {
                 if (!isMobile && leaderboardWrapper) leaderboardWrapper.classList.remove('hidden');
             } else if (target === 'leaderboard') {
                 if (homeGridContainer) homeGridContainer.classList.remove('hidden');
-                if (leaderboardWrapper) leaderboardWrapper.classList.remove('hidden');
+                if (leaderboardWrapper) {
+                    leaderboardWrapper.classList.remove('hidden');
+                    if (isMobile) leaderboardWrapper.classList.add('full-page');
+                }
                 updateLeaderboard(); // refresh it
             } else if (target === 'about') {
-                if (aboutView) aboutView.classList.remove('hidden');
+                if (aboutView) {
+                    aboutView.classList.remove('hidden');
+                    if (isMobile) aboutView.classList.add('full-page');
+                }
             } else if (target === 'settings') {
-                if (settingsMenu) settingsMenu.classList.remove('active'); // Changed to active for consistency
-                settingsMenu.classList.toggle('active');
+                if (settingsMenu) {
+                    settingsMenu.classList.remove('hidden');
+                    if (isMobile) settingsMenu.classList.add('full-page');
+                    settingsMenu.classList.add('active');
+                }
             }
         });
     });
@@ -289,6 +302,12 @@ window.onload = async () => {
     document.addEventListener('click', (e) => {
         // Close settings menu if clicked outside
         if (settingsMenu && settingsMenu.classList.contains('active')) {
+            const isMobile = window.innerWidth <= 768 || (window.Capacitor && window.Capacitor.isNativePlatform());
+            if (isMobile) {
+                // Mobilde sekmeler arasındayken dışarı tıklayınca kapanmasın
+                return;
+            }
+
             if (!e.target.closest('#settingsMenu') && !e.target.closest('#openQuestionManagerButton') && !e.target.closest('.theme-card') && !e.target.closest('#themeModal') && !e.target.closest('#adminPanelModal')) {
                 settingsMenu.classList.remove('active');
                 if (isMobile && homeGridContainer) homeGridContainer.classList.remove('hidden');
@@ -456,62 +475,8 @@ window.onload = async () => {
     // --- OTA UPDATE LISTENER (Electron) ---
     if (window.api && window.api.onUpdateAvailable) {
         window.api.onUpdateAvailable((data) => {
-            const updateModal = document.getElementById('updateModal');
-            const updateLink = document.getElementById('updateLink');
-
-            if (updateModal) {
-
-                if (updateLink) {
-                    // Update button behavior: Trigger background update
-                    updateLink.href = "#"; // Prevent external link
-                    updateLink.onclick = async (e) => {
-                        e.preventDefault();
-                        updateLink.innerHTML = "<span>🔄</span> Güncelleniyor...";
-                        updateLink.style.pointerEvents = "none";
-                        updateLink.style.opacity = "0.7";
-
-                        // --- DESKTOP (Electron) ---
-                        if (window.api && window.api.startUpdate) {
-                            const result = await window.api.startUpdate();
-                            if (!result.success) {
-                                alert("Güncelleme sırasında bir hata oluştu: " + result.error);
-                                updateLink.innerHTML = "<span>⚠️</span> Tekrar Dene";
-                                updateLink.style.pointerEvents = "auto";
-                                updateLink.style.opacity = "1";
-                            }
-                        } 
-                        // --- MOBILE (Capacitor) ---
-                        else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
-                            try {
-                                const { CapacitorUpdater } = window.Capacitor.Plugins;
-                                // Mobil güncelleme için bir .zip bundle URL'si gerekiyor.
-                                // Örnek: GitHub Releases üzerinden yayınlanan bir paket.
-                                const updateUrl = `https://github.com/umuttech/tubiyat/releases/download/${data.version}/bundle.zip`;
-                                
-                                const update = await CapacitorUpdater.download({
-                                    url: updateUrl,
-                                    version: data.version
-                                });
-                                
-                                await CapacitorUpdater.set({ id: update.id });
-                                // Uygulama otomatik yeniden başlayacak
-                            } catch (error) {
-                                console.error("Mobil güncelleme hatası:", error);
-                                alert("Mobil güncelleme başarısız: " + error.message);
-                                updateLink.innerHTML = "<span>⚠️</span> Tekrar Dene";
-                                updateLink.style.pointerEvents = "auto";
-                                updateLink.style.opacity = "1";
-                            }
-                        } else {
-                            // Fallback: Tarayıcı aç (GitHub)
-                            window.open(data.url, '_blank');
-                            updateLink.innerHTML = "<span>🚀</span> Güncelleniyor...";
-                        }
-                    };
-                }
-
-                updateModal.classList.remove('hidden');
-            }
+            // Electron main süreci bir güncelleme bulursa modalı aç
+            showUpdateModal(data.version);
         });
     }
 
@@ -1660,48 +1625,35 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "2.0.4"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "2.0.5"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
-    console.log("Bağlı Olunan Proje ID (appId):", appId); // Debug için eklendi
-
-    // Config path: /artifacts/{appId}/public/data/system/config
-    const configDocPath = `/artifacts/${appId}/public/data/system/config`;
-    const configDocRef = doc(db, configDocPath);
-
+    
+    // GitHub'dan en güncel versiyon bilgisini çek
+    const GITHUB_VERSION_URL = "https://raw.githubusercontent.com/umuttech/tubiyat/main/version.json";
+    
     try {
-        const docSnap = await getDoc(configDocRef);
-
-        if (!docSnap.exists()) {
-            console.log("Sistem konfigürasyonu bulunamadı, oluşturuluyor...");
-            // Initial Config Create
-            await setDoc(configDocRef, {
-                latest_version: APP_VERSION,
-                force_update: false,
-                download_url: "https://github.com/your-repo/releases" // Placeholder
-            }, { merge: true });
-            return; // Same version, no update
-        }
-
-        const data = docSnap.data();
-        const serverVersion = data.latest_version || APP_VERSION;
-        const downloadUrl = data.download_url || "#";
-
+        const response = await fetch(GITHUB_VERSION_URL, { cache: 'no-store' }); // Önbelleği önlemek için
+        if (!response.ok) throw new Error("GitHub versiyon dosyası alınamadı");
+        
+        const data = await response.json();
+        const serverVersion = data.version;
+        
         console.log(`Sunucu Sürümü: ${serverVersion}, Yerel Sürüm: ${APP_VERSION}`);
-
-        // Simple string comparison for versioning (sufficient for 1.0.0 format usually)
-        if (serverVersion > APP_VERSION) {
-            console.warn("YENİ GÜNCELLEME VAR!");
-            showUpdateModal(serverVersion, downloadUrl);
+        
+        if (serverVersion !== APP_VERSION) {
+            console.warn("Lokal sürüm sunucu ile uyumsuz. Güncelleme denetleniyor...");
+            // Basit string karşılaştırması yerine tam eşitlik kontrolü
+            // (v2.0.4 != v2.0.3 durumu için)
+            showUpdateModal(serverVersion);
         }
-
     } catch (e) {
         console.error("Versiyon kontrolü hatası:", e);
     }
 }
 
-function showUpdateModal(newVersion, url) {
+function showUpdateModal(newVersion) {
     const modal = document.getElementById('updateModal');
     if (!modal) return;
 
@@ -1709,13 +1661,49 @@ function showUpdateModal(newVersion, url) {
     document.getElementById('newVersionDisplay').textContent = newVersion;
 
     const linkBtn = document.getElementById('updateLink');
-    linkBtn.href = url;
+    
+    linkBtn.onclick = async (e) => {
+        e.preventDefault();
+        linkBtn.innerHTML = "<span>🔄</span> Güncelleniyor...";
+        linkBtn.style.pointerEvents = "none";
+        linkBtn.style.opacity = "0.7";
 
-    // If running in Electron, we might want to open in external browser
-    linkBtn.onclick = (e) => {
-        if (window.api && window.api.openExternal) {
-            e.preventDefault();
-            window.api.openExternal(url);
+        // --- DESKTOP (Electron) ---
+        if (window.api && window.api.startUpdate) {
+            const result = await window.api.startUpdate();
+            if (!result.success) {
+                alert("Güncelleme başarısız: " + result.error);
+                linkBtn.innerHTML = "<span>⚠️</span> Tekrar Dene";
+                linkBtn.style.pointerEvents = "auto";
+                linkBtn.style.opacity = "1";
+            }
+            // Başarılıysa Electron zaten yeniden başlatacak
+        } 
+        // --- MOBILE (Capacitor) ---
+        else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
+            try {
+                const { CapacitorUpdater } = window.Capacitor.Plugins;
+                const updateUrl = `https://github.com/umuttech/tubiyat/releases/download/${newVersion}/bundle.zip`;
+                
+                const update = await CapacitorUpdater.download({
+                    url: updateUrl,
+                    version: newVersion,
+                    // downloadTitle: "TÜBİYAT Güncelleniyor",
+                    // downloadDescription: "Yeni dosyalar indiriliyor..."
+                });
+                
+                await CapacitorUpdater.set({ id: update.id });
+                // Başarılıysa Capgo otomatik olarak Webview'ı reload eder veya uygulamayı restart eder.
+            } catch (error) {
+                console.error("Mobil güncelleme hatası:", error);
+                alert("Mobil güncelleme başarısız: " + error.message);
+                linkBtn.innerHTML = "<span>⚠️</span> Tekrar Dene";
+                linkBtn.style.pointerEvents = "auto";
+                linkBtn.style.opacity = "1";
+            }
+        } else {
+            // Hiçbiri yoksa (PWA/Web), GitHub Release sayfasına yönlendir
+            window.open(`https://github.com/umuttech/tubiyat/releases/tag/${newVersion}`, '_blank');
         }
     };
 

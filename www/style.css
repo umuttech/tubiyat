@@ -394,10 +394,39 @@ textarea {
 }
 
 /* Liderlik Tablosunun Tam Sayfa Gösterimi İçin Ayar */
-#leaderboardWrapper.full-page {
-    /* Mobilde ayrı sekme olarak açıldığında menünün altında kalmaması için */
-    margin-bottom: 6rem;
-    max-width: 100%;
+/* Genel Tam Sayfa Sekme Görünümü */
+.full-page {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 70vh !important;
+    margin-bottom: 7rem !important; /* Alt menü yüksekliği + boşluk */
+    padding: 1.5rem !important;
+    background: var(--panel-bg) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    border-radius: 1.5rem !important;
+    border: 1px solid var(--glass-border) !important;
+    animation: fadeIn 0.4s ease-out !important;
+    display: flex !important;
+    flex-direction: column !important;
+    z-index: 10 !important;
+    inset: auto !important; /* Reset fixed inset if any */
+}
+
+/* Modal formundan normal forma geçiş (mobilde) */
+@media (max-width: 768px) {
+    .mobile-tab-view {
+        position: relative !important;
+        inset: auto !important;
+        width: 90% !important;
+        margin: 1rem auto 7rem auto !important;
+        background: var(--panel-bg) !important;
+        border-radius: 1.5rem !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+    }
 }
 
 #leaderboardWrapper.full-page .leaderboard-scroll {
