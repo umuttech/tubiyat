@@ -237,12 +237,7 @@ window.onload = async () => {
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
 
-            // 2. Clear all views
-            if (homeGridContainer) homeGridContainer.classList.add('hidden');
-            if (leaderboardWrapper) {
-                leaderboardWrapper.classList.add('hidden');
-                leaderboardWrapper.classList.remove('full-page');
-            }
+            // 2. Clear all views (handle parent/child carefully)
             if (aboutView) {
                 aboutView.classList.add('hidden');
                 aboutView.classList.remove('full-page');
@@ -256,22 +251,32 @@ window.onload = async () => {
             // 3. Show only the target view
             if (target === 'home') {
                 if (homeGridContainer) homeGridContainer.classList.remove('hidden');
-                // Desktop: leaderboard is side-by-side with home
-                if (!isMobileView && leaderboardWrapper) {
-                    leaderboardWrapper.classList.remove('hidden');
+                if (loginView) loginView.classList.remove('hidden'); // Show login on home
+                if (leaderboardWrapper) {
+                    leaderboardWrapper.classList.remove('full-page');
+                    // Desktop: leaderboard is side-by-side with home
+                    if (!isMobileView) {
+                        leaderboardWrapper.classList.remove('hidden');
+                    } else {
+                        leaderboardWrapper.classList.add('hidden'); // Hide on mobile home tab
+                    }
                 }
             } else if (target === 'leaderboard') {
+                if (homeGridContainer) homeGridContainer.classList.remove('hidden'); // Parent must be visible
+                if (loginView) loginView.classList.add('hidden'); // Hide login on leaderboard tab
                 if (leaderboardWrapper) {
                     leaderboardWrapper.classList.remove('hidden');
                     if (isMobileView) leaderboardWrapper.classList.add('full-page');
                 }
                 if (typeof updateLeaderboard === 'function') updateLeaderboard();
             } else if (target === 'about') {
+                if (homeGridContainer) homeGridContainer.classList.add('hidden');
                 if (aboutView) {
                     aboutView.classList.remove('hidden');
                     if (isMobileView) aboutView.classList.add('full-page');
                 }
             } else if (target === 'settings') {
+                if (homeGridContainer) homeGridContainer.classList.add('hidden');
                 if (settingsMenu) {
                     settingsMenu.classList.remove('hidden');
                     settingsMenu.classList.add('active');
@@ -334,13 +339,7 @@ window.onload = async () => {
     if (settingsMenu) settingsMenu.addEventListener('click', (e) => e.stopPropagation());
 
     menuAdminBtn.addEventListener('click', () => {
-        if (settingsMenu) {
-            settingsMenu.classList.remove('active');
-            settingsMenu.classList.add('hidden');
-            settingsMenu.classList.remove('full-page');
-        }
-        // Ana sayfaya dön
-        if (homeGridContainer) homeGridContainer.classList.remove('hidden');
+        // Ayarlar menüsünü bilerek kapatmıyoruz, modallar üst üste binecek.
         window.openAdminAuth();
     });
 
@@ -390,13 +389,7 @@ window.onload = async () => {
     }
 
     menuThemeBtn.addEventListener('click', () => {
-        if (settingsMenu) {
-            settingsMenu.classList.remove('active');
-            settingsMenu.classList.add('hidden');
-            settingsMenu.classList.remove('full-page');
-        }
-        // Ana sayfaya dön
-        if (homeGridContainer) homeGridContainer.classList.remove('hidden');
+        // Ayarlar menüsünü kapatmıyoruz, sadece tema modalını açıyoruz.
         if (themeModal) themeModal.classList.remove('hidden');
         // Mark active theme in modal
         themeCards.forEach(card => {
@@ -1666,7 +1659,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.0.1"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.0.2"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);

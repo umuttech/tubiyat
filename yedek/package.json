@@ -1,0 +1,53 @@
+{
+  "name": "tubiyat",
+  "productName": "TÜBİYAT",
+  "version": "1.1.8",
+  "description": "Tübiyat",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "node prepare_mobile.js",
+    "dist": "electron-builder --win",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "homepage": "./",
+  "build": {
+    "appId": "com.tubiyat.app",
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "script.js",
+      "style.css",
+      "config.js",
+      "arkaplan.mp3",
+      "dogru.mp3",
+      "geri_sayim.mp3",
+      "yanlis.mp3",
+      "icon.png"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  },
+  "author": "Jules",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/network": "^8.0.1",
+    "pngjs": "^7.0.0"
+  }
+}

@@ -1,0 +1,25 @@
+- sol altta bulunan ayar simgesinde açılan menüde iki seçenek olacak
+-- yönetici paneli 
+- yönetici paneli içinde
+-- soru bankası
+-- kullanıcı yönetimi
+-- veri tabanı sıfırlama
+- tema seçim butonu tıklandığında açılır ekran olacak
+-- tema seçimi için butonlar olacak
+--- açık tema
+--- koyu tema
+--- sakura
+--- orman
+--- panda
+- tema seçeneklerini açıklıyorum
+-- açık tema: açık renkli arka planlı tema
+-- koyu tema: koyu renkli arka planlı tema
+-- sakura: pembe arka planlı arka planında sakura ağacı silüeti olan tema
+-- orman: yeşil arka planlı arka planında ağaç silüeti olan tema
+-- panda: siyah arka planlı arka planında küçük panda silüetleri olan tema
+- tema seçim ekranında her tema için küçük bir önizleme görseli olacak
+- tema seçim ekranında tema seç butonuna tıklandığında tema seçilecek ve tema seçim ekranı kapanacak
+- seçilen tema cihazda hatırlanacak ve diğer kullanıcılara (yüklü cihazlardaki arayüze) etki etmeyecek
+- tema seçim ekranında varsayılan tema koyu (şu anki) tema olacak
+- tüm arayüz elemanları seçilen temaya göre değişecek
+- arayüz elemanları şeffaf transparan arka planlı olabilir böylece daha şık durmakla seçilen temaya hemen ayak uydurabilirlk
