@@ -1,3 +1,14 @@
+// 🚀 GÜNCELLEME ONAYI (Rollback Engelleme) - Script başlar başlamaz sinyal gönder
+try {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
+        window.Capacitor.Plugins.CapacitorUpdater.notifyAppReady();
+        console.log("✅ OTA Güncelleme Onayı Gönderildi");
+    }
+} catch (e) {
+    console.error("OTA Onay Hatası:", e);
+    // alert("Hata (OTA Onay): " + e.message); // Gerektiğinde açılabilir
+}
+
 // Firebase kütüphanelerini import et
 import { initializeApp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -149,11 +160,6 @@ window.onload = async () => {
     firebaseConfig = config.firebaseConfig;
     geminiApiKey = config.geminiApiKey;
     appId = firebaseConfig.projectId || 'default-quiz-app';
-
-    // 🚀 GÜNCELLEME ONAYI (Rollback Engelleme)
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
-        window.Capacitor.Plugins.CapacitorUpdater.notifyAppReady();
-    }
 
     // DOM elementlerini seç
     loginView = document.getElementById('loginView');
@@ -1641,7 +1647,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "2.0.7"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "2.0.8"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);

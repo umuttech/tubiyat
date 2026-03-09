@@ -18,7 +18,8 @@ const filesToCopy = [
     'sakura.png',
     'orman.png',
     'sunrise.png',
-    'about.txt'
+    'about.txt',
+    'version.json'
 ];
 
 // Create www if not exists
