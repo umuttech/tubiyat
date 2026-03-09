@@ -1683,7 +1683,8 @@ function showUpdateModal(newVersion) {
         else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
             try {
                 const { CapacitorUpdater } = window.Capacitor.Plugins;
-                const updateUrl = `https://github.com/umuttech/tubiyat/releases/download/${newVersion}/bundle.zip`;
+                // GitHub Raw linkleri yönlendirme yapmadığı için mobil indirmede daha güvenilirdir.
+                const updateUrl = `https://raw.githubusercontent.com/umuttech/tubiyat/main/bundle.zip`;
                 
                 const update = await CapacitorUpdater.download({
                     url: updateUrl,
@@ -1695,8 +1696,12 @@ function showUpdateModal(newVersion) {
                 await CapacitorUpdater.set({ id: update.id });
                 // Başarılıysa Capgo otomatik olarak Webview'ı reload eder veya uygulamayı restart eder.
             } catch (error) {
-                console.error("Mobil güncelleme hatası:", error);
-                alert("Mobil güncelleme başarısız: " + error.message);
+                console.error("Mobil güncelleme hatası detayı:", error);
+                
+                // Hata mesajını daha detaylı göster (URL de dahil)
+                const errorMsg = error.message || "Bilinmeyen hata";
+                alert(`Mobil güncelleme başarısız!\n\nHata: ${errorMsg}\n\nLütfen internet bağlantınızı kontrol edin veya manuel olarak güncelleyin.`);
+                
                 linkBtn.innerHTML = "<span>⚠️</span> Tekrar Dene";
                 linkBtn.style.pointerEvents = "auto";
                 linkBtn.style.opacity = "1";
