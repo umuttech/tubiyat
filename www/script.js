@@ -19,10 +19,10 @@ let currentUserId = null;
 let isAuthReady = false;
 
 // --- DOM Elementleri ---
-let loginView, quizView, endView, medalWonView, explanationView;
+let loginView, quizView, endView, medalWonView, explanationView, aboutView;
 let countdownView;
 let nameInput, loginButton;
-let leaderboardContainer;
+let leaderboardContainer, aboutContent;
 let questionNumber, questionText, answersContainer, timerContainer, scoreDisplay;
 let endMessageText;
 let menuSoundBtn, menuSoundIcon, menuSoundText;
@@ -157,6 +157,8 @@ window.onload = async () => {
     medalWonView = document.getElementById('medalWonView');
     explanationView = document.getElementById('explanationView');
     countdownView = document.getElementById('countdownView');
+    aboutView = document.getElementById('aboutView');
+    aboutContent = document.getElementById('aboutContent');
 
     nameInput = document.getElementById('nameInput');
     nameError = document.getElementById('nameError');
@@ -176,9 +178,7 @@ window.onload = async () => {
     const mobileBottomNav = document.getElementById('mobileBottomNav');
     const navItems = document.querySelectorAll('.nav-item');
     const leaderboardWrapper = document.getElementById('leaderboardWrapper');
-    const aboutView = document.getElementById('aboutView');
     const desktopSettingsBtnWrapper = document.getElementById('desktopSettingsBtnWrapper');
-    const aboutContent = document.getElementById('aboutContent');
     const homeGridContainer = document.getElementById('homeGridContainer');
 
     // Desktop/Mobile detection
@@ -192,12 +192,8 @@ window.onload = async () => {
         if (leaderboardWrapper) leaderboardWrapper.classList.remove('full-page');
     } else {
         // Wait until splash screen is hidden before completely unhiding mobile bottom nav.
-        // For now, just remove it later or give it an animation
         if (mobileBottomNav) {
             mobileBottomNav.classList.remove('hidden');
-            // make it completely transparent originally if you want it to fade in:
-            // mobileBottomNav.style.opacity = "0"; 
-            // mobileBottomNav.style.animation = "fadeIn 1s forwards 2.5s"; // delay it past splash
         }
         if (desktopSettingsBtnWrapper) desktopSettingsBtnWrapper.classList.add('hidden');
         if (leaderboardWrapper) {
@@ -236,7 +232,6 @@ window.onload = async () => {
             if (aboutView) aboutView.classList.add('hidden');
             if (settingsMenu) settingsMenu.classList.add('hidden');
 
-
             if (target === 'home') {
                 if (homeGridContainer) homeGridContainer.classList.remove('hidden');
                 if (loginView) loginView.classList.remove('hidden');
@@ -249,7 +244,8 @@ window.onload = async () => {
             } else if (target === 'about') {
                 if (aboutView) aboutView.classList.remove('hidden');
             } else if (target === 'settings') {
-                if (settingsMenu) settingsMenu.classList.remove('hidden');
+                if (settingsMenu) settingsMenu.classList.remove('active'); // Changed to active for consistency
+                settingsMenu.classList.toggle('active');
             }
         });
     });
@@ -277,34 +273,71 @@ window.onload = async () => {
         settingsButton.addEventListener('click', (e) => {
             e.stopPropagation();
             if (settingsMenu) {
-                if (settingsMenu.classList.contains('hidden')) {
-                    settingsMenu.classList.remove('hidden');
-                    if (isMobile && homeGridContainer) homeGridContainer.classList.add('hidden');
-                } else {
-                    settingsMenu.classList.add('hidden');
-                    if (isMobile && homeGridContainer) homeGridContainer.classList.remove('hidden');
+                settingsMenu.classList.toggle('active');
+                if (isMobile) {
+                    // Mobilde menü açıldığında ana ekranı gizleyebiliriz (opsiyonel ama uyumlu olsun)
+                    if (settingsMenu.classList.contains('active')) {
+                        if (homeGridContainer) homeGridContainer.classList.add('hidden');
+                    } else {
+                        if (homeGridContainer) homeGridContainer.classList.remove('hidden');
+                    }
                 }
             }
         });
     }
 
     document.addEventListener('click', (e) => {
-        // Close settings view on desktop if clicked outside
-        if (!isMobile && settingsMenu && !settingsMenu.classList.contains('hidden')) {
+        // Close settings menu if clicked outside
+        if (settingsMenu && settingsMenu.classList.contains('active')) {
             if (!e.target.closest('#settingsMenu') && !e.target.closest('#openQuestionManagerButton') && !e.target.closest('.theme-card') && !e.target.closest('#themeModal') && !e.target.closest('#adminPanelModal')) {
-                settingsMenu.classList.add('hidden');
-                // No need to unhide homeGridContainer here as it wasn't hidden on desktop
+                settingsMenu.classList.remove('active');
+                if (isMobile && homeGridContainer) homeGridContainer.classList.remove('hidden');
             }
         }
     });
 
+    const menuAboutBtn = document.getElementById('menuAboutBtn');
+
     if (settingsMenu) settingsMenu.addEventListener('click', (e) => e.stopPropagation());
 
     menuAdminBtn.addEventListener('click', () => {
+        if (settingsMenu) settingsMenu.classList.remove('active');
         window.openAdminAuth();
     });
 
+    if (menuAboutBtn) {
+        menuAboutBtn.addEventListener('click', () => {
+            if (settingsMenu) settingsMenu.classList.remove('active');
+            if (aboutView) aboutView.classList.remove('hidden');
+        });
+    }
+
+    // Close About Modal Logic
+    const closeAboutModal = () => {
+        if (aboutView) aboutView.classList.add('hidden');
+    };
+
+    const closeAboutButton = document.getElementById('closeAboutButton');
+    const applyAboutBtn = document.getElementById('applyAboutBtn');
+
+    if (closeAboutButton) closeAboutButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAboutModal();
+    });
+    if (applyAboutBtn) applyAboutBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAboutModal();
+    });
+
+    // Close on background click
+    if (aboutView) {
+        aboutView.addEventListener('click', (e) => {
+            if (e.target === aboutView) closeAboutModal();
+        });
+    }
+
     menuThemeBtn.addEventListener('click', () => {
+        if (settingsMenu) settingsMenu.classList.remove('active');
         if (themeModal) themeModal.classList.remove('hidden');
         // Mark active theme in modal
         themeCards.forEach(card => {
@@ -412,6 +445,39 @@ window.onload = async () => {
         currentQuestionIndex++;
         showQuestion();
     });
+
+    // --- OTA UPDATE LISTENER (Electron) ---
+    if (window.api && window.api.onUpdateAvailable) {
+        window.api.onUpdateAvailable((data) => {
+            const updateModal = document.getElementById('updateModal');
+            const updateLink = document.getElementById('updateLink');
+
+            if (updateModal) {
+
+                if (updateLink) {
+                    // Update button behavior: Trigger background update
+                    updateLink.href = "#"; // Prevent external link
+                    updateLink.onclick = async (e) => {
+                        e.preventDefault();
+                        updateLink.innerHTML = "<span>🔄</span> Güncelleniyor...";
+                        updateLink.style.pointerEvents = "none";
+                        updateLink.style.opacity = "0.7";
+
+                        const result = await window.api.startUpdate();
+                        if (!result.success) {
+                            alert("Güncelleme sırasında bir hata oluştu: " + result.error);
+                            updateLink.innerHTML = "<span>⚠️</span> Tekrar Dene";
+                            updateLink.style.pointerEvents = "auto";
+                            updateLink.style.opacity = "1";
+                        }
+                        // If success, main.js will restart the app
+                    };
+                }
+
+                updateModal.classList.remove('hidden');
+            }
+        });
+    }
 
     // ✨ YENİ: Alt + 1 ile Veritabanı Sıfırlama Kısayolu (MODAL İLE GÜNCELLENDİ)
     // --- GENEL ŞİFRE MODAL YÖNETİMİ ---

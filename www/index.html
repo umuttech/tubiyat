@@ -276,24 +276,19 @@
         </button>
     </div>
 
-    <!-- Settings Menu View / Floating Panel -->
-    <div id="settingsMenu" class="hidden glass-panel flex flex-col animate-fadeIn 
-        w-full max-w-3xl mx-auto p-8 text-primary mb-24 mt-8 items-center 
-        md:fixed md:bottom-[5rem] md:left-4 md:w-[220px] md:p-0 md:m-0 md:z-[100] md:items-stretch md:bg-mat-dark/90">
-        <h2 class="text-3xl md:hidden font-bold mb-6 border-b border-gray-700/50 pb-4 w-full text-center">Ayarlar</h2>
-        <div class="w-full max-w-md md:w-full space-y-4 md:space-y-0">
-            <button id="menuSoundBtn"
-                class="w-full py-4 md:py-3 md:px-5 bg-black/20 hover:bg-black/30 border border-gray-700/50 md:border-0 md:border-b md:border-b-gray-700/50 rounded-xl md:rounded-none font-bold md:font-medium text-lg md:text-base flex md:justify-start items-center justify-center gap-3 transition-all hover:text-blue-400">
-                <span id="menuSoundIcon">🔇</span> <span id="menuSoundText">Sesi Aç</span>
-            </button>
-            <button id="menuAdminBtn"
-                class="w-full py-4 md:py-3 md:px-5 bg-black/20 hover:bg-black/30 border border-gray-700/50 md:border-0 md:border-b md:border-b-gray-700/50 rounded-xl md:rounded-none font-bold md:font-medium text-lg md:text-base flex md:justify-start items-center justify-center gap-3 transition-all hover:text-blue-400">
-                <span>🛡️</span> Yönetici Paneli
-            </button>
-            <button id="menuThemeBtn"
-                class="w-full py-4 md:py-3 md:px-5 bg-black/20 hover:bg-black/30 border border-gray-700/50 md:border-0 rounded-xl md:rounded-none font-bold md:font-medium text-lg md:text-base flex md:justify-start items-center justify-center gap-3 transition-all hover:text-blue-400">
-                <span>🎨</span> Tema Seçimi
-            </button>
+    <!-- Settings Menu Overlay -->
+    <div id="settingsMenu" class="glass-panel">
+        <div class="settings-item" id="menuSoundBtn">
+            <span id="menuSoundIcon">🔇</span> <span id="menuSoundText">Sesi Aç</span>
+        </div>
+        <div class="settings-item" id="menuAdminBtn">
+            <span>🛡️</span> Yönetici Paneli
+        </div>
+        <div class="settings-item" id="menuAboutBtn">
+            <span>ℹ️</span> Hakkımızda
+        </div>
+        <div class="settings-item" id="menuThemeBtn">
+            <span>🎨</span> Tema Seçimi
         </div>
     </div>
 
@@ -543,13 +538,33 @@
         </div>
     </div>
 
-    <!-- About View -->
-    <div id="aboutView" class="hidden w-full max-w-3xl mx-auto p-8 glass-panel text-primary mb-24 mt-8 animate-fadeIn">
-        <h2 class="text-3xl font-bold mb-6 border-b border-gray-700/50 pb-4 text-center">Hakkımızda</h2>
-        <div id="aboutContent"
-            class="text-lg leading-relaxed space-y-4 whitespace-pre-wrap bg-black/10 p-6 rounded-xl overflow-y-auto max-h-[60vh]">
-            <div class="flex justify-center items-center h-32">
-                <div class="w-8 h-8 border-4 border-t-blue-500 border-gray-600 rounded-full animate-spin"></div>
+    <!-- About View Modal (Desktop) / Full Page (Mobile) -->
+    <div id="aboutView"
+        class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[250] p-4 text-primary md:bg-opacity-80 md:inset-0 mobile-about-view">
+        <div class="bg-mat-dark p-8 rounded-2xl shadow-2xl max-w-2xl w-full glass-panel relative animate-fadeIn">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">ℹ️ Hakkımızda</h2>
+                <button id="closeAboutButton" class="text-secondary hover:text-primary transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div id="aboutContent"
+                class="text-lg leading-relaxed space-y-4 whitespace-pre-wrap bg-black/10 p-6 rounded-xl overflow-y-auto max-h-[60vh] md:max-h-[50vh]">
+                <div class="flex justify-center items-center h-32">
+                    <div class="w-8 h-8 border-4 border-t-blue-500 border-gray-600 rounded-full animate-spin"></div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center">
+                <button id="applyAboutBtn"
+                    class="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all shadow-lg transform hover:scale-105">
+                    Tamam
+                </button>
             </div>
         </div>
     </div>
@@ -574,6 +589,22 @@
                 <span class="nav-icon">⚙️</span>
                 <span class="nav-label">Ayarlar</span>
             </button>
+        </div>
+    </div>
+
+    <!-- OTA Update Modal -->
+    <div id="updateModal" class="hidden fixed inset-0 bg-black/60 opacity-90 flex items-center justify-center z-[500] p-4">
+        <div class="bg-mat-dark p-8 rounded-2xl shadow-2xl max-w-md w-full glass-panel relative animate-bounceIn text-center border border-blue-500/30">
+            <div class="text-6xl mb-4">🚀</div>
+            <h2 class="text-3xl font-bold text-primary mb-2">Yeni Güncelleme!</h2>
+            <p class="text-secondary mb-8 text-lg">Daha iyi bir deneyim için uygulamanın yeni sürümü mevcut. Lütfen güncelleyin.</p>
+            
+            <div class="space-y-4">
+                <button id="updateLink" 
+                   class="w-full inline-block px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] transform hover:scale-105 active:scale-95">
+                   <span>🚀</span> Güncellemeyi İndir
+                </button>
+            </div>
         </div>
     </div>
 

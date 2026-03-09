@@ -143,7 +143,86 @@ textarea {
     transform: scale(0.98);
 }
 
-/* Moved Settings Menu to Tailwind classes in HTML */
+/* Settings Menu Overlay */
+#settingsMenu {
+    position: fixed;
+    bottom: 4.5rem;
+    left: 1rem;
+    width: 220px;
+    z-index: 100;
+    border-radius: 12px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--panel-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+#settingsMenu.active {
+    display: flex;
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-item {
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-color);
+}
+
+.settings-item:hover {
+    background: var(--item-hover);
+    padding-left: 24px;
+    color: var(--accent-color);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile Compatibility for Settings Menu */
+@media (max-width: 768px) {
+    #settingsMenu {
+        bottom: 5.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 350px;
+    }
+
+    #settingsMenu.active {
+        animation: slideUpMobile 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(-50%) translateY(0);
+    }
+
+    @keyframes slideUpMobile {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+}
 
 /* Theme Grid & Modal */
 .theme-grid {

@@ -450,15 +450,9 @@ window.onload = async () => {
     if (window.api && window.api.onUpdateAvailable) {
         window.api.onUpdateAvailable((data) => {
             const updateModal = document.getElementById('updateModal');
-            const newVersionDisplay = document.getElementById('newVersionDisplay');
-            const currentVersionDisplay = document.getElementById('currentVersionDisplay');
             const updateLink = document.getElementById('updateLink');
 
             if (updateModal) {
-                if (newVersionDisplay) newVersionDisplay.textContent = data.version;
-                // Get current version from appConfig or fallback
-                const currentVer = typeof APP_VERSION !== 'undefined' ? APP_VERSION : "1.0.0";
-                if (currentVersionDisplay) currentVersionDisplay.textContent = currentVer;
 
                 if (updateLink) {
                     // Update button behavior: Trigger background update
@@ -469,14 +463,43 @@ window.onload = async () => {
                         updateLink.style.pointerEvents = "none";
                         updateLink.style.opacity = "0.7";
 
-                        const result = await window.api.startUpdate();
-                        if (!result.success) {
-                            alert("Güncelleme sırasında bir hata oluştu: " + result.error);
-                            updateLink.innerHTML = "<span>⚠️</span> Tekrar Dene";
-                            updateLink.style.pointerEvents = "auto";
-                            updateLink.style.opacity = "1";
+                        // --- DESKTOP (Electron) ---
+                        if (window.api && window.api.startUpdate) {
+                            const result = await window.api.startUpdate();
+                            if (!result.success) {
+                                alert("Güncelleme sırasında bir hata oluştu: " + result.error);
+                                updateLink.innerHTML = "<span>⚠️</span> Tekrar Dene";
+                                updateLink.style.pointerEvents = "auto";
+                                updateLink.style.opacity = "1";
+                            }
+                        } 
+                        // --- MOBILE (Capacitor) ---
+                        else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
+                            try {
+                                const { CapacitorUpdater } = window.Capacitor.Plugins;
+                                // Mobil güncelleme için bir .zip bundle URL'si gerekiyor.
+                                // Örnek: GitHub Releases üzerinden yayınlanan bir paket.
+                                const updateUrl = `https://github.com/umuttech/tubiyat/releases/download/${data.version}/bundle.zip`;
+                                
+                                const update = await CapacitorUpdater.download({
+                                    url: updateUrl,
+                                    version: data.version
+                                });
+                                
+                                await CapacitorUpdater.set({ id: update.id });
+                                // Uygulama otomatik yeniden başlayacak
+                            } catch (error) {
+                                console.error("Mobil güncelleme hatası:", error);
+                                alert("Mobil güncelleme başarısız: " + error.message);
+                                updateLink.innerHTML = "<span>⚠️</span> Tekrar Dene";
+                                updateLink.style.pointerEvents = "auto";
+                                updateLink.style.opacity = "1";
+                            }
+                        } else {
+                            // Fallback: Tarayıcı aç (GitHub)
+                            window.open(data.url, '_blank');
+                            updateLink.innerHTML = "<span>🚀</span> Güncelleniyor...";
                         }
-                        // If success, main.js will restart the app
                     };
                 }
 
