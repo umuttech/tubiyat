@@ -237,21 +237,26 @@ window.onload = async () => {
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
 
-            // 2. Clear all views and their mobile states
-            const allViews = [homeGridContainer, leaderboardWrapper, aboutView, settingsMenu];
-            allViews.forEach(view => {
-                if (view) {
-                    view.classList.add('hidden');
-                    view.classList.remove('full-page');
-                    if (view === settingsMenu) view.classList.remove('active');
-                }
-            });
+            // 2. Clear all views
+            if (homeGridContainer) homeGridContainer.classList.add('hidden');
+            if (leaderboardWrapper) {
+                leaderboardWrapper.classList.add('hidden');
+                leaderboardWrapper.classList.remove('full-page');
+            }
+            if (aboutView) {
+                aboutView.classList.add('hidden');
+                aboutView.classList.remove('full-page');
+            }
+            if (settingsMenu) {
+                settingsMenu.classList.add('hidden');
+                settingsMenu.classList.remove('active');
+                settingsMenu.classList.remove('full-page');
+            }
 
             // 3. Show only the target view
             if (target === 'home') {
                 if (homeGridContainer) homeGridContainer.classList.remove('hidden');
-                if (loginView) loginView.classList.remove('hidden');
-                // Desktop logic: leaderboard is side-by-side
+                // Desktop: leaderboard is side-by-side with home
                 if (!isMobileView && leaderboardWrapper) {
                     leaderboardWrapper.classList.remove('hidden');
                 }
@@ -300,13 +305,9 @@ window.onload = async () => {
             e.stopPropagation();
             if (settingsMenu) {
                 settingsMenu.classList.toggle('active');
+                settingsMenu.classList.toggle('hidden');
                 if (isMobile) {
-                    // Mobilde menü açıldığında ana ekranı gizleyebiliriz (opsiyonel ama uyumlu olsun)
-                    if (settingsMenu.classList.contains('active')) {
-                        if (homeGridContainer) homeGridContainer.classList.add('hidden');
-                    } else {
-                        if (homeGridContainer) homeGridContainer.classList.remove('hidden');
-                    }
+                    settingsMenu.classList.toggle('full-page');
                 }
             }
         });
@@ -333,7 +334,13 @@ window.onload = async () => {
     if (settingsMenu) settingsMenu.addEventListener('click', (e) => e.stopPropagation());
 
     menuAdminBtn.addEventListener('click', () => {
-        if (settingsMenu) settingsMenu.classList.remove('active');
+        if (settingsMenu) {
+            settingsMenu.classList.remove('active');
+            settingsMenu.classList.add('hidden');
+            settingsMenu.classList.remove('full-page');
+        }
+        // Ana sayfaya dön
+        if (homeGridContainer) homeGridContainer.classList.remove('hidden');
         window.openAdminAuth();
     });
 
@@ -383,7 +390,13 @@ window.onload = async () => {
     }
 
     menuThemeBtn.addEventListener('click', () => {
-        if (settingsMenu) settingsMenu.classList.remove('active');
+        if (settingsMenu) {
+            settingsMenu.classList.remove('active');
+            settingsMenu.classList.add('hidden');
+            settingsMenu.classList.remove('full-page');
+        }
+        // Ana sayfaya dön
+        if (homeGridContainer) homeGridContainer.classList.remove('hidden');
         if (themeModal) themeModal.classList.remove('hidden');
         // Mark active theme in modal
         themeCards.forEach(card => {
@@ -1653,7 +1666,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.0.0"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.0.1"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
