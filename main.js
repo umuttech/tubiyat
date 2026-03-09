@@ -63,46 +63,6 @@ const configData = {
   geminiApiKey: "AIzaSyBcL978S_LW-A4Wc54tFD5omQSlWIp8nIM"
 };
 
-// --- 2. İLETİŞİM KÖPRÜSÜNÜ KURUYORUZ ---
-// script.js "get-config" dediğinde bu fonksiyon çalışır ve veriyi yollar.
-ipcMain.handle('get-config', () => {
-  return configData;
-});
-
-// --- OTA AUTO-PATCHER HANDLER ---
-ipcMain.handle('start-update', async () => {
-  try {
-    console.log("Starting background update...");
-
-    // 1. Get the remote version.json again to get the file list
-    const remoteVersionData = await fetchRemoteData(VERSION_URL);
-    const remoteVersion = JSON.parse(remoteVersionData);
-    const filesToUpdate = remoteVersion.files || ['index.html', 'script.js', 'style.css', 'version.json'];
-
-    // 2. Download and replace each file
-    for (const fileName of filesToUpdate) {
-      const fileUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${fileName}`;
-      const fileContent = await fetchRemoteData(fileUrl);
-      const filePath = path.join(__dirname, fileName);
-
-      // Write file (ensure dir exists if needed, though here they are in root)
-      fs.writeFileSync(filePath, fileContent);
-      console.log(`Updated: ${fileName}`);
-    }
-
-    console.log("All files updated successfully. Restarting...");
-
-    // 3. Restart the app
-    app.relaunch();
-    app.exit(0);
-
-    return { success: true };
-  } catch (error) {
-    console.error("Update failed:", error.message);
-    return { success: false, error: error.message };
-  }
-});
-
 // Helper to fetch data from HTTPS
 function fetchRemoteData(url) {
   return new Promise((resolve, reject) => {
@@ -121,24 +81,62 @@ function createWindow() {
     icon: path.join(__dirname, 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      // --- 3. KRİTİK AYARLAR (CORS HATASI İÇİN) ---
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false // <--- Bu satır "CORS policy" hatasını çözer!
+      webSecurity: false
     }
   });
 
   mainWindow.loadFile('index.html');
-
-  // Start update check
-  setTimeout(checkForUpdates, 3000); // Check 3 seconds after launch
-  setInterval(checkForUpdates, UPDATE_CHECK_INTERVAL);
-
-  // İsterseniz geliştirici konsolunu otomatik açmak için şu satırı aktif edin:
-  // mainWindow.webContents.openDevTools();
+  // setTimeout(checkForUpdates, 3000);
+  // setInterval(checkForUpdates, UPDATE_CHECK_INTERVAL);
 }
 
 app.whenReady().then(() => {
+  // --- 2. İLETİŞİM KÖPRÜSÜNÜ KURUYORUZ ---
+  // script.js "get-config" dediğinde bu fonksiyon çalışır ve veriyi yollar.
+  try {
+    ipcMain.handle('get-config', () => {
+      return configData;
+    });
+
+    // --- OTA AUTO-PATCHER HANDLER ---
+    ipcMain.handle('start-update', async () => {
+      try {
+        console.log("Starting background update...");
+
+        // 1. Get the remote version.json again to get the file list
+        const remoteVersionData = await fetchRemoteData(VERSION_URL);
+        const remoteVersion = JSON.parse(remoteVersionData);
+        const filesToUpdate = remoteVersion.files || ['index.html', 'script.js', 'style.css', 'version.json'];
+
+        // 2. Download and replace each file
+        for (const fileName of filesToUpdate) {
+          const fileUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${fileName}`;
+          const fileContent = await fetchRemoteData(fileUrl);
+          const filePath = path.join(__dirname, fileName);
+
+          // Write file (ensure dir exists if needed)
+          fs.writeFileSync(filePath, fileContent);
+          console.log(`Updated: ${fileName}`);
+        }
+
+        console.log("All files updated successfully. Restarting...");
+
+        // 3. Restart the app
+        app.relaunch();
+        app.exit(0);
+
+        return { success: true };
+      } catch (error) {
+        console.error("Update failed:", error.message);
+        return { success: false, error: error.message };
+      }
+    });
+  } catch (e) {
+    console.error("IPC Registration Error:", e.message);
+  }
+
   createWindow();
 
   app.on('activate', () => {

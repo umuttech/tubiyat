@@ -126,7 +126,7 @@ let level3QuestionBank = [];
 // --- ANA FONKSİYONLAR ---
 
 /**
- * Sayfa yüklendiğinde çalışır, Firebase ve DOM'u başlatır
+ * Sayfa yüklendiğinde çalışır, Firebase ve DOM'u başlat��r
  */
 window.onload = async () => {
     // --- OFFLINE DETECTION ---
@@ -136,27 +136,25 @@ window.onload = async () => {
     // Load the configuration from the main process
     // Load the configuration from the main process (Electron) or global scope (Mobile/Web)
     let config;
-    if (window.api && window.api.getConfig) {
-        config = await window.api.getConfig();
-    } else if (window.appConfig) {
-        config = window.appConfig;
-    } else {
-        console.error("Yapılandırma dosyası (config) bulunamadı!");
-        // Fallback or alert user
-        alert("Hata: Konfigürasyon yüklenemedi.");
+    try {
+        if (window.api && window.api.getConfig) {
+            config = await window.api.getConfig();
+        } else if (window.appConfig) {
+            config = window.appConfig;
+        } else {
+            console.error("Yapılandırma dosyası (config) bulunamadı!");
+            // Fallback or alert user
+            alert("Hata: Konfigürasyon yüklenemedi.");
+            return;
+        }
+    } catch (configError) {
+        console.error("Konfigürasyon yükleme hatası:", configError);
+        alert("Hata: Konfigürasyon alınamadı (Electron IPC veya Ağ hatası).");
         return;
     }
     firebaseConfig = config.firebaseConfig;
     geminiApiKey = config.geminiApiKey;
     appId = firebaseConfig.projectId || 'default-quiz-app';
-
-    // 🚀 GÜNCELLEME ONAYI (Rollback Engelleme)
-    // Bu sinyalin gönderilmesi için script'in sağlıklı yüklenmesi yeterli.
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
-        window.Capacitor.Plugins.CapacitorUpdater.notifyAppReady()
-            .then(() => console.log("✅ OTA Güncelleme Onayı Gönderildi"))
-            .catch(e => console.error("OTA Onay Hatası:", e));
-    }
 
     // DOM elementlerini seç
     loginView = document.getElementById('loginView');
@@ -812,13 +810,10 @@ function setupLeaderboardListener() {
 function updateLeaderboard() {
     if (!leaderboardContainer) return;
 
-    // allUsers yoksa veya boşsa önlemini al
-    const currentUserList = allUsers || [];
+    // KOPYA ALARAK SIRALA (Orijinal listeyi bozma)
+    const sortedUsers = [...(allUsers || [])].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
 
-    // Puana göre sırala (En yüksek puan en üstte)
-    const sortedUsers = [...currentUserList].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-
-    leaderboardContainer.innerHTML = ""; // Temizle
+    leaderboardContainer.innerHTML = "";
 
     if (sortedUsers.length === 0) {
         const emptyMsg = document.createElement('div');
@@ -829,9 +824,8 @@ function updateLeaderboard() {
 
     sortedUsers.forEach((user, index) => {
         const rank = index + 1;
-        const userRankTitle = getRankTitle(user.totalPoints || 0); // Rütbe Hesapla
+        const userRankTitle = getRankTitle(user.totalPoints || 0);
         const userRow = document.createElement('div');
-        // Theme-aware row styling
         const isSelf = user.name === nameInput.value;
         userRow.className = `flex justify-between items-center p-3 rounded-md mb-2 transition-colors border ${isSelf ? 'bg-blue-500/20 border-blue-500' : 'bg-black/5 hover:bg-black/10 border-transparent'}`;
 
@@ -857,6 +851,13 @@ function updateLeaderboard() {
         `;
         leaderboardContainer.appendChild(userRow);
     });
+
+    // Capacitor Updater onayını buraya ekliyoruz (UI yüklendiğinde garanti sinyal)
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
+        window.Capacitor.Plugins.CapacitorUpdater.notifyAppReady()
+            .then(() => console.log("OTA Onaylandı (Leaderboard)"))
+            .catch(e => console.warn("OTA Onay Gecikti"));
+    }
 }
 
 /**
@@ -1649,7 +1650,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "2.0.9"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "2.0.10"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
@@ -1694,35 +1695,33 @@ function showUpdateModal(newVersion) {
 
         // --- DESKTOP (Electron) ---
         if (window.api && window.api.startUpdate) {
-            const result = await window.api.startUpdate();
-            if (!result.success) {
-                alert("Güncelleme başarısız: " + result.error);
+            try {
+                const result = await window.api.startUpdate();
+                if (result && !result.success) {
+                    throw new Error(result.error);
+                }
+            } catch (err) {
+                console.error("Desktop update error:", err);
+                alert("Güncelleme başarısız: " + (err.message || err));
                 linkBtn.innerHTML = "<span>⚠️</span> Tekrar Dene";
                 linkBtn.style.pointerEvents = "auto";
                 linkBtn.style.opacity = "1";
             }
-            // Başarılıysa Electron zaten yeniden başlatacak
         } 
         // --- MOBILE (Capacitor) ---
         else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
             try {
                 const { CapacitorUpdater } = window.Capacitor.Plugins;
-                // GitHub Raw linkleri yönlendirme yapmadığı için mobil indirmede daha güvenilirdir.
                 const updateUrl = `https://raw.githubusercontent.com/umuttech/tubiyat/main/bundle.zip`;
                 
                 const update = await CapacitorUpdater.download({
                     url: updateUrl,
-                    version: newVersion,
-                    // downloadTitle: "TÜBİYAT Güncelleniyor",
-                    // downloadDescription: "Yeni dosyalar indiriliyor..."
+                    version: newVersion
                 });
                 
                 await CapacitorUpdater.set({ id: update.id });
-                // Başarılıysa Capgo otomatik olarak Webview'ı reload eder veya uygulamayı restart eder.
             } catch (error) {
-                console.error("Mobil güncelleme hatası detayı:", error);
-                
-                // Hata mesajını daha detaylı göster (URL de dahil)
+                console.error("Mobil güncelleme hatası:", error);
                 const errorMsg = error.message || "Bilinmeyen hata";
                 alert(`Mobil güncelleme başarısız!\n\nHata: ${errorMsg}\n\nLütfen internet bağlantınızı kontrol edin veya manuel olarak güncelleyin.`);
                 
