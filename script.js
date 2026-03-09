@@ -194,8 +194,11 @@ window.onload = async () => {
     if (!isMobile) {
         if (mobileBottomNav) mobileBottomNav.classList.add('hidden');
         if (desktopSettingsBtnWrapper) desktopSettingsBtnWrapper.classList.remove('hidden');
-        // Keep leaderboard in its desktop place
-        if (leaderboardWrapper) leaderboardWrapper.classList.remove('full-page');
+        // Keep leaderboard visible and in its desktop place
+        if (leaderboardWrapper) {
+            leaderboardWrapper.classList.remove('full-page');
+            leaderboardWrapper.classList.remove('hidden');
+        }
     } else {
         // Wait until splash screen is hidden before completely unhiding mobile bottom nav.
         if (mobileBottomNav) {
@@ -1650,7 +1653,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "2.0.10"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.0.0"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
@@ -1712,7 +1715,7 @@ function showUpdateModal(newVersion) {
         else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
             try {
                 const { CapacitorUpdater } = window.Capacitor.Plugins;
-                const updateUrl = `https://raw.githubusercontent.com/umuttech/tubiyat/main/bundle.zip`;
+                const updateUrl = `https://github.com/umuttech/tubiyat/raw/main/bundle.zip`;
                 
                 const update = await CapacitorUpdater.download({
                     url: updateUrl,
