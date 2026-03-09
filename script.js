@@ -332,7 +332,14 @@ window.onload = async () => {
     // Close on background click
     if (aboutView) {
         aboutView.addEventListener('click', (e) => {
-            if (e.target === aboutView) closeAboutModal();
+            if (e.target === aboutView) {
+                const isMobile = window.innerWidth <= 768 || (window.Capacitor && window.Capacitor.isNativePlatform());
+                if (isMobile) {
+                    // Mobilde arka plana tıklansa da kapanmasın (kalıcı sayfa gibi davranması için)
+                    return;
+                }
+                closeAboutModal();
+            }
         });
     }
 
@@ -1653,7 +1660,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "2.0.3"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "2.0.4"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
