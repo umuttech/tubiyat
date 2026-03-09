@@ -1,14 +1,3 @@
-// 🚀 GÜNCELLEME ONAYI (Rollback Engelleme) - Script başlar başlamaz sinyal gönder
-try {
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
-        window.Capacitor.Plugins.CapacitorUpdater.notifyAppReady();
-        console.log("✅ OTA Güncelleme Onayı Gönderildi");
-    }
-} catch (e) {
-    console.error("OTA Onay Hatası:", e);
-    // alert("Hata (OTA Onay): " + e.message); // Gerektiğinde açılabilir
-}
-
 // Firebase kütüphanelerini import et
 import { initializeApp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -160,6 +149,14 @@ window.onload = async () => {
     firebaseConfig = config.firebaseConfig;
     geminiApiKey = config.geminiApiKey;
     appId = firebaseConfig.projectId || 'default-quiz-app';
+
+    // 🚀 GÜNCELLEME ONAYI (Rollback Engelleme)
+    // Bu sinyalin gönderilmesi için script'in sağlıklı yüklenmesi yeterli.
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
+        window.Capacitor.Plugins.CapacitorUpdater.notifyAppReady()
+            .then(() => console.log("✅ OTA Güncelleme Onayı Gönderildi"))
+            .catch(e => console.error("OTA Onay Hatası:", e));
+    }
 
     // DOM elementlerini seç
     loginView = document.getElementById('loginView');
@@ -813,8 +810,13 @@ function setupLeaderboardListener() {
  * Liderlik tablosu DOM'unu günceller
  */
 function updateLeaderboard() {
+    if (!leaderboardContainer) return;
+
+    // allUsers yoksa veya boşsa önlemini al
+    const currentUserList = allUsers || [];
+
     // Puana göre sırala (En yüksek puan en üstte)
-    const sortedUsers = allUsers.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+    const sortedUsers = [...currentUserList].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
 
     leaderboardContainer.innerHTML = ""; // Temizle
 
@@ -1647,7 +1649,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "2.0.8"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "2.0.9"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
