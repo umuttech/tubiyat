@@ -88,8 +88,8 @@ function createWindow() {
   });
 
   mainWindow.loadFile('index.html');
-  // setTimeout(checkForUpdates, 3000);
-  // setInterval(checkForUpdates, UPDATE_CHECK_INTERVAL);
+  setTimeout(checkForUpdates, 3000);
+  setInterval(checkForUpdates, UPDATE_CHECK_INTERVAL);
 }
 
 app.whenReady().then(() => {
