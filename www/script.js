@@ -329,6 +329,7 @@ window.onload = async () => {
 
             if (!e.target.closest('#settingsMenu') && !e.target.closest('#openQuestionManagerButton') && !e.target.closest('.theme-card') && !e.target.closest('#themeModal') && !e.target.closest('#adminPanelModal')) {
                 settingsMenu.classList.remove('active');
+                settingsMenu.classList.add('hidden');
                 if (isMobile && homeGridContainer) homeGridContainer.classList.remove('hidden');
             }
         }
@@ -1659,7 +1660,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.0.2"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.0.3"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
