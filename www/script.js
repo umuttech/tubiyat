@@ -150,6 +150,11 @@ window.onload = async () => {
     geminiApiKey = config.geminiApiKey;
     appId = firebaseConfig.projectId || 'default-quiz-app';
 
+    // 🚀 GÜNCELLEME ONAYI (Rollback Engelleme)
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
+        window.Capacitor.Plugins.CapacitorUpdater.notifyAppReady();
+    }
+
     // DOM elementlerini seç
     loginView = document.getElementById('loginView');
     quizView = document.getElementById('quizView');
@@ -1636,7 +1641,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "2.0.6"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "2.0.7"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
