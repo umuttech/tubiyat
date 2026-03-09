@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tubiyat</string>
+    <string name="title_activity_main">Tubiyat</string>
+    <string name="package_name">com.tubiyat.app</string>
+    <string name="custom_url_scheme">com.tubiyat.app</string>
+</resources>
