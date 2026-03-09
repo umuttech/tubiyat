@@ -393,7 +393,6 @@ textarea {
     opacity: 1;
 }
 
-/* Liderlik Tablosunun Tam Sayfa Gösterimi İçin Ayar */
 /* Genel Tam Sayfa Sekme Görünümü */
 .full-page {
     position: relative !important;
@@ -401,32 +400,48 @@ textarea {
     max-width: 100% !important;
     height: auto !important;
     min-height: 70vh !important;
-    margin-bottom: 7rem !important; /* Alt menü yüksekliği + boşluk */
-    padding: 1.5rem !important;
+    margin-bottom: 7rem !important;
+    padding: 1rem !important;
     background: var(--panel-bg) !important;
     backdrop-filter: var(--glass-blur) !important;
     border-radius: 1.5rem !important;
     border: 1px solid var(--glass-border) !important;
     animation: fadeIn 0.4s ease-out !important;
-    display: flex !important;
+    display: flex; /* Remove !important so .hidden can win */
     flex-direction: column !important;
     z-index: 10 !important;
-    inset: auto !important; /* Reset fixed inset if any */
+    inset: auto !important;
+    transform: none !important; /* Reset any mobile transforms */
 }
 
-/* Modal formundan normal forma geçiş (mobilde) */
+/* Modal formundan normal forma geçiş (mobilde sekmeler için) */
 @media (max-width: 768px) {
     .mobile-tab-view {
         position: relative !important;
         inset: auto !important;
-        width: 90% !important;
-        margin: 1rem auto 7rem auto !important;
-        background: var(--panel-bg) !important;
-        border-radius: 1.5rem !important;
-        display: flex !important;
-        flex-direction: column !important;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+        width: 100% !important;
+        margin: 0 auto 7rem auto !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        display: none; /* Initially hidden until .full-page added */
     }
+
+    /* Mobilde modal içindeki içeriği tam sayfa yap */
+    .mobile-tab-view .desktop-modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 1.5rem !important;
+        border-radius: 1.5rem !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+        background: var(--panel-bg) !important;
+    }
+}
+
+/* Zorunlu gizleme sınıfı */
+.hidden {
+    display: none !important;
 }
 
 #leaderboardWrapper.full-page .leaderboard-scroll {

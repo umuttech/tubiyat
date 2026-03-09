@@ -219,45 +219,49 @@ window.onload = async () => {
     // Tab Switching Logic
     navItems.forEach(item => {
         item.addEventListener('click', () => {
-            // Update Active State
+            const target = item.getAttribute('data-target');
+            const isMobileView = window.innerWidth <= 768 || (window.Capacitor && window.Capacitor.isNativePlatform());
+
+            console.log(`Sekme değiştiriliyor: ${target} (Mobil: ${isMobileView})`);
+
+            // 1. Reset all nav items
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
 
-            const target = item.getAttribute('data-target');
-            const isMobile = window.innerWidth <= 768 || (window.Capacitor && window.Capacitor.isNativePlatform());
+            // 2. Clear all views and their mobile states
+            const allViews = [homeGridContainer, leaderboardWrapper, aboutView, settingsMenu];
+            allViews.forEach(view => {
+                if (view) {
+                    view.classList.add('hidden');
+                    view.classList.remove('full-page');
+                    if (view === settingsMenu) view.classList.remove('active');
+                }
+            });
 
-            // Hide All Views
-            if (homeGridContainer) homeGridContainer.classList.add('hidden');
-            if (loginView) loginView.classList.add('hidden');
-            if (leaderboardWrapper) leaderboardWrapper.classList.add('hidden');
-            if (aboutView) aboutView.classList.add('hidden');
-            if (settingsMenu) {
-                settingsMenu.classList.add('hidden');
-                settingsMenu.classList.remove('active');
-            }
-
+            // 3. Show only the target view
             if (target === 'home') {
                 if (homeGridContainer) homeGridContainer.classList.remove('hidden');
                 if (loginView) loginView.classList.remove('hidden');
-                // if desktop, leaderboard stays visible alongside
-                if (!isMobile && leaderboardWrapper) leaderboardWrapper.classList.remove('hidden');
+                // Desktop logic: leaderboard is side-by-side
+                if (!isMobileView && leaderboardWrapper) {
+                    leaderboardWrapper.classList.remove('hidden');
+                }
             } else if (target === 'leaderboard') {
-                if (homeGridContainer) homeGridContainer.classList.remove('hidden');
                 if (leaderboardWrapper) {
                     leaderboardWrapper.classList.remove('hidden');
-                    if (isMobile) leaderboardWrapper.classList.add('full-page');
+                    if (isMobileView) leaderboardWrapper.classList.add('full-page');
                 }
-                updateLeaderboard(); // refresh it
+                if (typeof updateLeaderboard === 'function') updateLeaderboard();
             } else if (target === 'about') {
                 if (aboutView) {
                     aboutView.classList.remove('hidden');
-                    if (isMobile) aboutView.classList.add('full-page');
+                    if (isMobileView) aboutView.classList.add('full-page');
                 }
             } else if (target === 'settings') {
                 if (settingsMenu) {
                     settingsMenu.classList.remove('hidden');
-                    if (isMobile) settingsMenu.classList.add('full-page');
                     settingsMenu.classList.add('active');
+                    if (isMobileView) settingsMenu.classList.add('full-page');
                 }
             }
         });
@@ -326,8 +330,15 @@ window.onload = async () => {
 
     if (menuAboutBtn) {
         menuAboutBtn.addEventListener('click', () => {
-            if (settingsMenu) settingsMenu.classList.remove('active');
-            if (aboutView) aboutView.classList.remove('hidden');
+            const isMobile = window.innerWidth <= 768 || (window.Capacitor && window.Capacitor.isNativePlatform());
+            if (isMobile) {
+                // Mobilde sekmeler arası geçiş yap (mevcut tab mantığını tetikle)
+                const aboutTab = document.querySelector('.nav-item[data-target="about"]');
+                if (aboutTab) aboutTab.click();
+            } else {
+                if (settingsMenu) settingsMenu.classList.remove('active');
+                if (aboutView) aboutView.classList.remove('hidden');
+            }
         });
     }
 
@@ -1625,7 +1636,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "2.0.5"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "2.0.6"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
