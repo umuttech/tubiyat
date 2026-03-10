@@ -1665,13 +1665,13 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.0.4"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.0.5"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
     
     // GitHub'dan en güncel versiyon bilgisini çek
-    const GITHUB_VERSION_URL = "https://raw.githubusercontent.com/umuttech/tubiyat/main/version.json";
+    const GITHUB_VERSION_URL = "https://raw.githubusercontent.com/umuttech/tubiyat/main/version.json?t=" + new Date().getTime();
     
     try {
         const response = await fetch(GITHUB_VERSION_URL, { cache: 'no-store' }); // Önbelleği önlemek için
@@ -1727,7 +1727,7 @@ function showUpdateModal(newVersion) {
         else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
             try {
                 const { CapacitorUpdater } = window.Capacitor.Plugins;
-                const updateUrl = `https://github.com/umuttech/tubiyat/raw/main/bundle.zip`;
+                const updateUrl = `https://github.com/umuttech/tubiyat/raw/main/bundle.zip?t=` + new Date().getTime();
                 
                 const update = await CapacitorUpdater.download({
                     url: updateUrl,
