@@ -1485,6 +1485,7 @@ function switchView(viewId) {
     const leaderboardWrapper = document.getElementById('leaderboardWrapper');
     const homeGridContainer = document.getElementById('homeGridContainer');
     const settingsMenu = document.getElementById('settingsMenu');
+    const mobileBottomNav = document.getElementById('mobileBottomNav');
 
     if (settingsMenu) settingsMenu.classList.add('hidden');
     if (homeGridContainer) homeGridContainer.classList.add('hidden');
@@ -1499,11 +1500,15 @@ function switchView(viewId) {
         } else if (leaderboardWrapper) {
             leaderboardWrapper.classList.add('hidden');
         }
+        if (mobileBottomNav) mobileBottomNav.classList.remove('hidden');
     } else {
         if (document.getElementById(viewId)) {
             document.getElementById(viewId).classList.remove('hidden');
         }
         if (leaderboardWrapper) leaderboardWrapper.classList.add('hidden');
+        if (mobileBottomNav && ['countdownView', 'quizView', 'endView'].includes(viewId)) {
+            mobileBottomNav.classList.add('hidden');
+        }
     }
 }
 
