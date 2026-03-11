@@ -1,63 +1,64 @@
-# Mobile Bundle Script v2 - Forward Slash Safe
-Add-Type -AssemblyName System.IO.Compression.FileSystem
+# Mobile Bundle Script v2.2 - Assembly Fix
+try {
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+} catch {
+    Write-Host "Warning: Could not load Compression assemblies via Add-Type. Trying alternative..." -ForegroundColor Yellow
+}
 
 $version = Get-Content -Raw version.json | ConvertFrom-Json | Select-Object -ExpandProperty version
-$dest = "bundle.zip"
+$destName = "bundle.zip"
 $wwwDir = "www"
 
-# 1. Clear and Rebuild www directory
-if (Test-Path $wwwDir) { Remove-Item -Recurse -Force $wwwDir }
-New-Item -ItemType Directory -Path $wwwDir | Out-Null
+$sourceRoot = (Get-Item .).FullName
+$destPath = Join-Path $sourceRoot $destName
+$wwwPath = Join-Path $sourceRoot $wwwDir
 
-Write-Host "Files are being prepared for v$version..." -ForegroundColor Blue
+if (Test-Path $wwwPath) { Remove-Item -Recurse -Force $wwwPath }
+New-Item -ItemType Directory -Path $wwwPath | Out-Null
 
-# 2. Copy Base Files
+Write-Host "Preparing v$version..." -ForegroundColor Blue
+
 $mainFiles = @("index.html", "script.js", "style.css", "appConfig.js", "version.json", "about.txt")
 foreach ($file in $mainFiles) {
-    if (Test-Path $file) {
-        Copy-Item $file "$wwwDir/$file"
-        Write-Host "  Copied: $file" -ForegroundColor DarkGray
+    $srcFile = Join-Path $sourceRoot $file
+    if (Test-Path $srcFile) {
+        Copy-Item $srcFile "$wwwPath/$file"
     }
 }
 
-# 3. Copy Folders (images/sounds)
 $folders = @("images", "sounds")
 foreach ($folder in $folders) {
     if (Test-Path $folder) {
-        New-Item -ItemType Directory -Path "$wwwDir/$folder" -Force | Out-Null
-        Copy-Item -Path "$folder/*" -Destination "$wwwDir/$folder" -Recurse -Force
-        Write-Host "  Copied: $folder/ contents" -ForegroundColor DarkGray
+        $targetFolder = Join-Path $wwwPath $folder
+        New-Item -ItemType Directory -Path $targetFolder -Force | Out-Null
+        Copy-Item -Path "$folder/*" -Destination $targetFolder -Recurse -Force
     }
 }
 
-# 4. Create ZIP with FORWARD SLASHES (Cross-Platform compatible)
-if (Test-Path $dest) { Remove-Item $dest }
+if (Test-Path $destPath) { Remove-Item $destPath }
 
 Write-Host "Creating bundle.zip with forward slashes..." -ForegroundColor Blue
 
-# Create an empty zip file first
-$zipFile = [System.IO.Compression.ZipFile]::Open($dest, [System.IO.Compression.ZipArchiveMode]::Create)
+try {
+    # Use full type name to be safe
+    $zipFile = [System.IO.Compression.ZipFile]::Open($destPath, [System.IO.Compression.ZipArchiveMode]::Create)
+    $filesToZip = Get-ChildItem -Path $wwwPath -Recurse | Where-Object { -not $_.PSIsContainer }
 
-# Get all files in www recursively
-$filesToZip = Get-ChildItem -Path $wwwDir -Recurse | Where-Object { -not $_.PSIsContainer }
+    foreach ($file in $filesToZip) {
+        $relativePath = $file.FullName.Substring($wwwPath.Length + 1).Replace("\", "/")
+        $entry = $zipFile.CreateEntry($relativePath)
+        $entryStream = $entry.Open()
+        $fileStream = [System.IO.File]::OpenRead($file.FullName)
+        $fileStream.CopyTo($entryStream)
+        $fileStream.Close()
+        $entryStream.Close()
+        Write-Host "  + $relativePath" -ForegroundColor Cyan
+    }
 
-foreach ($file in $filesToZip) {
-    # Calculate relative path and replace \ with /
-    $relativePath = $file.FullName.Substring((Get-Item $wwwDir).FullName.Length + 1).Replace("\", "/")
-    
-    # Create entry
-    $entry = $zipFile.CreateEntry($relativePath)
-    $entryStream = $entry.Open()
-    $fileStream = [System.IO.File]::OpenRead($file.FullName)
-    $fileStream.CopyTo($entryStream)
-    
-    $fileStream.Close()
-    $entryStream.Close()
-    Write-Host "  Zipped: $relativePath" -ForegroundColor Cyan
+    $zipFile.Dispose()
+    Write-Host "SUCCESS: $destPath" -ForegroundColor Green
+} catch {
+    Write-Host "ERROR: $_" -ForegroundColor Red
+    if ($zipFile) { $zipFile.Dispose() }
 }
-
-$zipFile.Dispose()
-
-Write-Host ""
-Write-Host "SUCCESS! bundle.zip created for v$version with / separators." -ForegroundColor Green
-Write-Host "Please upload bundle.zip to GitHub Releases v$version tag." -ForegroundColor Yellow
