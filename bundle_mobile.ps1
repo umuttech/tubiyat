@@ -1,4 +1,4 @@
-# Mobile Bundle Script - images/ ve sounds/ klasorlerini de dahil eder
+# Mobile Bundle Script - Guncellenmis ZIP stratejisi
 $version = Get-Content -Raw version.json | ConvertFrom-Json | Select-Object -ExpandProperty version
 $dest = "bundle.zip"
 $wwwDir = "www"
@@ -15,33 +15,32 @@ foreach ($file in $mainFiles) {
     if (Test-Path $file) {
         Copy-Item $file "$wwwDir\$file"
         Write-Host "  Kopyalandi: $file" -ForegroundColor DarkGray
-    } else {
-        Write-Host "  UYARI: $file bulunamadi!" -ForegroundColor Yellow
     }
 }
 
-# images/ klasoru
+# Alt klasorleri kopyala (Daha saglam kopyalama yontemi)
 if (Test-Path "images") {
-    Copy-Item -Recurse "images" "$wwwDir\images"
-    Write-Host "  Kopyalandi: images/ klasoru" -ForegroundColor DarkGray
-} else {
-    Write-Host "  UYARI: images/ klasoru bulunamadi!" -ForegroundColor Yellow
+    New-Item -ItemType Directory -Path "$wwwDir\images" -ErrorAction SilentlyContinue | Out-Null
+    Copy-Item -Path "images\*" -Destination "$wwwDir\images" -Recurse -Force
+    Write-Host "  Kopyalandi: images/ icerigi" -ForegroundColor DarkGray
 }
 
-# sounds/ klasoru
 if (Test-Path "sounds") {
-    Copy-Item -Recurse "sounds" "$wwwDir\sounds"
-    Write-Host "  Kopyalandi: sounds/ klasoru" -ForegroundColor DarkGray
-} else {
-    Write-Host "  UYARI: sounds/ klasoru bulunamadi!" -ForegroundColor Yellow
+    New-Item -ItemType Directory -Path "$wwwDir\sounds" -ErrorAction SilentlyContinue | Out-Null
+    Copy-Item -Path "sounds\*" -Destination "$wwwDir\sounds" -Recurse -Force
+    Write-Host "  Kopyalandi: sounds/ icerigi" -ForegroundColor DarkGray
 }
 
-# Eski bundle.zip'i sil ve yenisini olustur
+# Eski bundle.zip'i sil
 if (Test-Path $dest) { Remove-Item $dest }
 
+# ZIP icinde klasor yapisini dogru kurmak icin www icine girip zipliyoruz
 Write-Host "bundle.zip olusturuluyor..." -ForegroundColor Blue
-Compress-Archive -Path "$wwwDir\*" -DestinationPath $dest
+Push-Location $wwwDir
+# Alt klasorler dahil tum icerigi ziple
+Compress-Archive -Path * -DestinationPath "..\$dest" -Force
+Pop-Location
 
 Write-Host ""
-Write-Host "Tamamlandi! bundle.zip v$version icin olusturuldu." -ForegroundColor Green
-Write-Host "Simdi GitHub Releases'e v$version etiketi altinda bundle.zip dosyasini yukleyin." -ForegroundColor Yellow
+Write-Host "Basarili! bundle.zip v$version icin olusturuldu." -ForegroundColor Green
+Write-Host "GitHub Releases v$version tagine yukleyin." -ForegroundColor Yellow

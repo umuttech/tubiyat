@@ -54,10 +54,10 @@ let explainButton;
 let nextQuestionTimeout = null;
 
 // --- SES DEĞİŞKENLERİ ---
-const correctSound = new Audio('./sounds/dogru.mp3');
-const wrongSound = new Audio('./sounds/yanlis.mp3');
-const countdownSound = new Audio('./sounds/geri_sayim.mp3');
-const backgroundMusic = new Audio('./sounds/arkaplan.mp3');
+const correctSound = new Audio('sounds/dogru.mp3');
+const wrongSound = new Audio('sounds/yanlis.mp3');
+const countdownSound = new Audio('sounds/geri_sayim.mp3');
+const backgroundMusic = new Audio('sounds/arkaplan.mp3');
 
 backgroundMusic.loop = true;
 backgroundMusic.volume = 0.3;
@@ -1681,7 +1681,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.0.9"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.1.0"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);

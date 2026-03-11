@@ -8,7 +8,7 @@
     --accent-hover: #2563eb;
     --glass-blur: blur(20px);
     --glass-border: rgba(255, 255, 255, 0.08);
-    --bg-image: url('./images/dark.png');
+    --bg-image: url('images/dark.png');
     --item-hover: rgba(255, 255, 255, 0.1);
 }
 
@@ -34,7 +34,7 @@ body {
     --text-secondary: #94a3b8;
     --text-color: var(--text-primary);
     --accent-color: #3b82f6;
-    --bg-image: url('./images/dark.png');
+    --bg-image: url('images/dark.png');
     --item-hover: rgba(255, 255, 255, 0.1);
 }
 
@@ -47,7 +47,7 @@ body {
     --accent-color: #2563eb;
     --accent-hover: #1d4ed8;
     --glass-border: rgba(0, 0, 0, 0.1);
-    --bg-image: url('./images/white.png');
+    --bg-image: url('images/white.png');
     --item-hover: rgba(0, 0, 0, 0.05);
 }
 
@@ -59,7 +59,7 @@ body {
     --text-color: var(--text-primary);
     --accent-color: #fb7185;
     --accent-hover: #f43f5e;
-    --bg-image: url('./images/sakura.png');
+    --bg-image: url('images/sakura.png');
     --glass-blur: blur(10px);
     --glass-border: rgba(251, 113, 133, 0.2);
     --item-hover: rgba(136, 19, 55, 0.1);
@@ -73,7 +73,7 @@ body {
     --text-color: var(--text-primary);
     --accent-color: #22c55e;
     --accent-hover: #16a34a;
-    --bg-image: url('./images/orman.png');
+    --bg-image: url('images/orman.png');
     --glass-blur: blur(10px);
     --glass-border: rgba(34, 197, 94, 0.2);
     --item-hover: rgba(6, 78, 59, 0.1);
@@ -87,7 +87,7 @@ body {
     --text-color: var(--text-primary);
     --accent-color: #f97316;
     --accent-hover: #ea580c;
-    --bg-image: url('./images/sunrise.png');
+    --bg-image: url('images/sunrise.png');
     --glass-blur: blur(8px);
     --glass-border: rgba(249, 115, 22, 0.2);
     --item-hover: rgba(124, 45, 18, 0.1);
