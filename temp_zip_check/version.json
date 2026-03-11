@@ -1,0 +1,21 @@
+{
+    "version": "3.0.8",
+    "buildDate": "2026-03-11",
+    "files": [
+        "index.html",
+        "script.js",
+        "style.css",
+        "appConfig.js",
+        "version.json",
+        "about.txt",
+        "images/dark.png",
+        "images/white.png",
+        "images/sakura.png",
+        "images/orman.png",
+        "images/sunrise.png",
+        "sounds/arkaplan.mp3",
+        "sounds/dogru.mp3",
+        "sounds/geri_sayim.mp3",
+        "sounds/yanlis.mp3"
+    ]
+}

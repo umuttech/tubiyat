@@ -1,0 +1,450 @@
+:root {
+    --bg-color: #0f172a;
+    --panel-bg: rgba(15, 23, 42, 0.7);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-color: var(--text-primary);
+    --accent-color: #3b82f6;
+    --accent-hover: #2563eb;
+    --glass-blur: blur(20px);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --bg-image: url('images/dark.png');
+    --item-hover: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    background-color: var(--bg-color);
+    background-image: var(--bg-image);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: var(--text-color);
+    font-family: 'Outfit', 'Inter', sans-serif;
+    transition: background 0.5s ease, color 0.4s ease;
+    min-height: 100vh;
+    overflow-x: hidden;
+    margin: 0;
+}
+
+/* Theme Definitions */
+.theme-dark {
+    --bg-color: #0f172a;
+    --panel-bg: rgba(15, 23, 42, 0.8);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-color: var(--text-primary);
+    --accent-color: #3b82f6;
+    --bg-image: url('images/dark.png');
+    --item-hover: rgba(255, 255, 255, 0.1);
+}
+
+.theme-light {
+    --bg-color: #f3f4f6;
+    --panel-bg: rgba(255, 255, 255, 0.75);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-color: var(--text-primary);
+    --accent-color: #2563eb;
+    --accent-hover: #1d4ed8;
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --bg-image: url('images/white.png');
+    --item-hover: rgba(0, 0, 0, 0.05);
+}
+
+.theme-sakura {
+    --bg-color: #fff1f2;
+    --panel-bg: rgba(255, 255, 255, 0.7);
+    --text-primary: #881337;
+    --text-secondary: #be123c;
+    --text-color: var(--text-primary);
+    --accent-color: #fb7185;
+    --accent-hover: #f43f5e;
+    --bg-image: url('images/sakura.png');
+    --glass-blur: blur(10px);
+    --glass-border: rgba(251, 113, 133, 0.2);
+    --item-hover: rgba(136, 19, 55, 0.1);
+}
+
+.theme-forest {
+    --bg-color: #f0fdf4;
+    --panel-bg: rgba(255, 255, 255, 0.7);
+    --text-primary: #064e3b;
+    --text-secondary: #065f46;
+    --text-color: var(--text-primary);
+    --accent-color: #22c55e;
+    --accent-hover: #16a34a;
+    --bg-image: url('images/orman.png');
+    --glass-blur: blur(10px);
+    --glass-border: rgba(34, 197, 94, 0.2);
+    --item-hover: rgba(6, 78, 59, 0.1);
+}
+
+.theme-sunrise {
+    --bg-color: #fffaf5;
+    --panel-bg: rgba(255, 255, 255, 0.7);
+    --text-primary: #7c2d12;
+    --text-secondary: #9a3412;
+    --text-color: var(--text-primary);
+    --accent-color: #f97316;
+    --accent-hover: #ea580c;
+    --bg-image: url('images/sunrise.png');
+    --glass-blur: blur(8px);
+    --glass-border: rgba(249, 115, 22, 0.2);
+    --item-hover: rgba(124, 45, 18, 0.1);
+}
+
+/* Base Styles - Redundant definition removed */
+
+/* Glassmorphism Classes - Simplified for visibility */
+.glass-panel {
+    background: var(--panel-bg) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.text-primary {
+    color: var(--text-primary) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.bg-mat-dark {
+    background: var(--panel-bg) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+/* Button & Input Adaptations */
+input,
+select,
+textarea {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text-color) !important;
+}
+
+.btn-primary,
+#loginButton,
+#confirmResetButton,
+#confirmDeleteUserButton,
+#qmSaveButton {
+    background: var(--accent-color) !important;
+    border: none !important;
+}
+
+.btn-primary:active,
+#loginButton:active {
+    transform: scale(0.98);
+}
+
+/* Settings Menu Overlay */
+#settingsMenu {
+    position: fixed;
+    bottom: 4.5rem;
+    left: 1rem;
+    width: 220px;
+    z-index: 100;
+    border-radius: 12px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--panel-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+#settingsMenu.active {
+    display: flex;
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-item {
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-color);
+}
+
+.settings-item:hover {
+    background: var(--item-hover);
+    padding-left: 24px;
+    color: var(--accent-color);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile Compatibility for Settings Menu */
+@media (max-width: 768px) {
+    #settingsMenu {
+        bottom: 5.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 350px;
+    }
+
+    #settingsMenu.active {
+        animation: slideUpMobile 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(-50%) translateY(0);
+    }
+
+    @keyframes slideUpMobile {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+}
+
+/* Theme Grid & Modal */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.theme-card:hover {
+    background: var(--item-hover);
+    transform: translateY(-4px);
+}
+
+.theme-card.active {
+    border-color: var(--accent-color);
+    background: var(--item-hover);
+}
+
+.theme-preview {
+    height: 90px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid var(--glass-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-card span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: block;
+}
+
+/* Floating Gear Glow */
+#openQuestionManagerButton {
+    background: var(--panel-bg) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    border-color: var(--glass-border) !important;
+    transition: all 0.3s;
+}
+
+#openQuestionManagerButton:hover {
+    transform: rotate(45deg);
+    box-shadow: 0 0 20px var(--accent-color);
+}
+
+#timerProgressCircle {
+    transition: stroke-dashoffset 1s linear;
+    stroke: var(--accent-color);
+}
+
+.leaderboard-scroll {
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 10px;
+    opacity: 0.5;
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* --- YENI EKLENEN STİLLER (MOBİL MENÜ VE DİĞERLERİ) --- */
+
+/* Developer Signature */
+.developer-signature {
+    color: var(--text-primary);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    /* mix-blend-difference HTML tarafında eklendi, duruma göre burada da ekstra stiller konulabilir */
+}
+
+/* Mobile Bottom Navigation (Dinamik Ada Tarzı) */
+.mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0 1rem 1.5rem 1rem;
+    /* Alt kısımdan boşluk bırak */
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    /* Arkaplan tıklamalarını engellememek için */
+}
+
+.bottom-nav-container {
+    background: var(--panel-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    max-width: 400px;
+    /* Tabletlerde vs çok uzamasın */
+    pointer-events: auto;
+    /* Tıklanabilir alan */
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 64px;
+    position: relative;
+}
+
+.nav-item.active {
+    color: var(--accent-color);
+    background: var(--item-hover);
+}
+
+.nav-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    transition: transform 0.3s ease;
+}
+
+.nav-item:active .nav-icon {
+    transform: scale(0.8);
+}
+
+.nav-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.nav-item.active .nav-label {
+    opacity: 1;
+}
+
+/* Genel Tam Sayfa Sekme Görünümü */
+.full-page {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 70vh !important;
+    margin-bottom: 7rem !important;
+    padding: 1rem !important;
+    background: var(--panel-bg) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    border-radius: 1.5rem !important;
+    border: 1px solid var(--glass-border) !important;
+    animation: fadeIn 0.4s ease-out !important;
+    display: flex; /* Remove !important so .hidden can win */
+    flex-direction: column !important;
+    z-index: 10 !important;
+    inset: auto !important;
+    transform: none !important; /* Reset any mobile transforms */
+}
+
+/* Modal formundan normal forma geçiş (mobilde sekmeler için) */
+@media (max-width: 768px) {
+    .mobile-tab-view {
+        position: relative !important;
+        inset: auto !important;
+        width: 100% !important;
+        margin: 0 auto 7rem auto !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        display: none; /* Initially hidden until .full-page added */
+    }
+
+    /* Mobilde modal içindeki içeriği tam sayfa yap */
+    .mobile-tab-view .desktop-modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 1.5rem !important;
+        border-radius: 1.5rem !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+        background: var(--panel-bg) !important;
+    }
+}
+
+/* Zorunlu gizleme sınıfı */
+.hidden {
+    display: none !important;
+}
+
+#leaderboardWrapper.full-page .leaderboard-scroll {
+    max-height: 65vh;
+    /* Mobilde daha fazla alan ver */
+}
