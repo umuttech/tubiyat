@@ -10,6 +10,21 @@ const UPDATE_CHECK_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
 let mainWindow;
 
+const UPDATE_PATH = path.join(app.getPath('userData'), 'update');
+const LOCAL_VERSION_PATH = path.join(__dirname, 'version.json');
+const DOWNLOADED_VERSION_PATH = path.join(UPDATE_PATH, 'version.json');
+
+function getActiveVersion() {
+  try {
+    if (fs.existsSync(DOWNLOADED_VERSION_PATH)) {
+      return JSON.parse(fs.readFileSync(DOWNLOADED_VERSION_PATH, 'utf8'));
+    }
+  } catch (e) {
+    console.error("Error reading downloaded version:", e.message);
+  }
+  return JSON.parse(fs.readFileSync(LOCAL_VERSION_PATH, 'utf8'));
+}
+
 function checkForUpdates() {
   https.get(VERSION_URL, (res) => {
     let data = '';
@@ -17,10 +32,9 @@ function checkForUpdates() {
     res.on('end', () => {
       try {
         const remoteVersion = JSON.parse(data);
-        const localVersionPath = path.join(__dirname, 'version.json');
-        const localVersion = JSON.parse(fs.readFileSync(localVersionPath, 'utf8'));
+        const activeVersion = getActiveVersion();
 
-        if (isNewerVersion(remoteVersion.version, localVersion.version)) {
+        if (isNewerVersion(remoteVersion.version, activeVersion.version)) {
           console.log(`Update available: ${remoteVersion.version}`);
           if (mainWindow) {
             mainWindow.webContents.send('update-available', {
@@ -49,7 +63,6 @@ function isNewerVersion(remote, local) {
 }
 
 // --- 1. AYARLARI BURAYA SABİTLİYORUZ ---
-// "Cloned" hatasını çözmek için veriyi saf bir nesne olarak burada tanımlıyoruz.
 const configData = {
   firebaseConfig: {
     apiKey: "AIzaSyAiybvG-Fa3wavK27CuuJfSdLJ6eKkMckc",
@@ -63,13 +76,15 @@ const configData = {
   geminiApiKey: "AIzaSyBcL978S_LW-A4Wc54tFD5omQSlWIp8nIM"
 };
 
-// Helper to fetch data from HTTPS
 function fetchRemoteData(url) {
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
-      let data = '';
-      res.on('data', (chunk) => data += chunk);
-      res.on('end', () => resolve(data));
+      if (res.statusCode !== 200) {
+        return reject(new Error(`Failed to fetch: ${res.statusCode}`));
+      }
+      let data = [];
+      res.on('data', (chunk) => data.push(chunk));
+      res.on('end', () => resolve(Buffer.concat(data)));
     }).on('error', (err) => reject(err));
   });
 }
@@ -87,43 +102,49 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadFile('index.html');
+  // Hot-load update if exists
+  const updateIndexPath = path.join(UPDATE_PATH, 'index.html');
+  if (fs.existsSync(updateIndexPath)) {
+    console.log("Loading from Hot-Update directory:", updateIndexPath);
+    mainWindow.loadFile(updateIndexPath);
+  } else {
+    mainWindow.loadFile('index.html');
+  }
+
   setTimeout(checkForUpdates, 3000);
   setInterval(checkForUpdates, UPDATE_CHECK_INTERVAL);
 }
 
 app.whenReady().then(() => {
-  // --- 2. İLETİŞİM KÖPRÜSÜNÜ KURUYORUZ ---
-  // script.js "get-config" dediğinde bu fonksiyon çalışır ve veriyi yollar.
   try {
     ipcMain.handle('get-config', () => {
       return configData;
     });
 
-    // --- OTA AUTO-PATCHER HANDLER ---
     ipcMain.handle('start-update', async () => {
       try {
-        console.log("Starting background update...");
+        console.log("Starting background update to userData...");
 
-        // 1. Get the remote version.json again to get the file list
-        const remoteVersionData = await fetchRemoteData(VERSION_URL);
-        const remoteVersion = JSON.parse(remoteVersionData);
-        const filesToUpdate = remoteVersion.files || ['index.html', 'script.js', 'style.css', 'version.json'];
-
-        // 2. Download and replace each file
-        for (const fileName of filesToUpdate) {
-          const fileUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${fileName}`;
-          const fileContent = await fetchRemoteData(fileUrl);
-          const filePath = path.join(__dirname, fileName);
-
-          // Write file (ensure dir exists if needed)
-          fs.writeFileSync(filePath, fileContent);
-          console.log(`Updated: ${fileName}`);
+        // Ensure update directory exists
+        if (!fs.existsSync(UPDATE_PATH)) {
+          fs.mkdirSync(UPDATE_PATH, { recursive: true });
         }
 
-        console.log("All files updated successfully. Restarting...");
+        const remoteVersionData = await fetchRemoteData(VERSION_URL);
+        const remoteVersion = JSON.parse(remoteVersionData.toString());
+        const filesToUpdate = remoteVersion.files || ['index.html', 'script.js', 'style.css', 'version.json'];
 
-        // 3. Restart the app
+        for (const fileName of filesToUpdate) {
+          const fileUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${fileName}`;
+          const fileBuffer = await fetchRemoteData(fileUrl);
+          const filePath = path.join(UPDATE_PATH, fileName);
+
+          // Write file (ensure dir exists if needed)
+          fs.writeFileSync(filePath, fileBuffer);
+          console.log(`Updated in userData: ${fileName}`);
+        }
+
+        console.log("All files updated in userData. Restarting...");
         app.relaunch();
         app.exit(0);
 
