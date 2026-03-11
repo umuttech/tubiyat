@@ -1,46 +1,63 @@
-# Mobile Bundle Script - Guncellenmis ZIP stratejisi
+# Mobile Bundle Script v2 - Forward Slash Safe
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
 $version = Get-Content -Raw version.json | ConvertFrom-Json | Select-Object -ExpandProperty version
 $dest = "bundle.zip"
 $wwwDir = "www"
 
-# www klasorunu temizle ve yeniden olustur
+# 1. Clear and Rebuild www directory
 if (Test-Path $wwwDir) { Remove-Item -Recurse -Force $wwwDir }
 New-Item -ItemType Directory -Path $wwwDir | Out-Null
 
-Write-Host "Dosyalar kopyalaniyor: v$version" -ForegroundColor Blue
+Write-Host "Files are being prepared for v$version..." -ForegroundColor Blue
 
-# Ana dosyalar
+# 2. Copy Base Files
 $mainFiles = @("index.html", "script.js", "style.css", "appConfig.js", "version.json", "about.txt")
 foreach ($file in $mainFiles) {
     if (Test-Path $file) {
-        Copy-Item $file "$wwwDir\$file"
-        Write-Host "  Kopyalandi: $file" -ForegroundColor DarkGray
+        Copy-Item $file "$wwwDir/$file"
+        Write-Host "  Copied: $file" -ForegroundColor DarkGray
     }
 }
 
-# Alt klasorleri kopyala (Daha saglam kopyalama yontemi)
-if (Test-Path "images") {
-    New-Item -ItemType Directory -Path "$wwwDir\images" -ErrorAction SilentlyContinue | Out-Null
-    Copy-Item -Path "images\*" -Destination "$wwwDir\images" -Recurse -Force
-    Write-Host "  Kopyalandi: images/ icerigi" -ForegroundColor DarkGray
+# 3. Copy Folders (images/sounds)
+$folders = @("images", "sounds")
+foreach ($folder in $folders) {
+    if (Test-Path $folder) {
+        New-Item -ItemType Directory -Path "$wwwDir/$folder" -Force | Out-Null
+        Copy-Item -Path "$folder/*" -Destination "$wwwDir/$folder" -Recurse -Force
+        Write-Host "  Copied: $folder/ contents" -ForegroundColor DarkGray
+    }
 }
 
-if (Test-Path "sounds") {
-    New-Item -ItemType Directory -Path "$wwwDir\sounds" -ErrorAction SilentlyContinue | Out-Null
-    Copy-Item -Path "sounds\*" -Destination "$wwwDir\sounds" -Recurse -Force
-    Write-Host "  Kopyalandi: sounds/ icerigi" -ForegroundColor DarkGray
-}
-
-# Eski bundle.zip'i sil
+# 4. Create ZIP with FORWARD SLASHES (Cross-Platform compatible)
 if (Test-Path $dest) { Remove-Item $dest }
 
-# ZIP icinde klasor yapisini dogru kurmak icin www icine girip zipliyoruz
-Write-Host "bundle.zip olusturuluyor..." -ForegroundColor Blue
-Push-Location $wwwDir
-# Alt klasorler dahil tum icerigi ziple
-Compress-Archive -Path * -DestinationPath "..\$dest" -Force
-Pop-Location
+Write-Host "Creating bundle.zip with forward slashes..." -ForegroundColor Blue
+
+# Create an empty zip file first
+$zipFile = [System.IO.Compression.ZipFile]::Open($dest, [System.IO.Compression.ZipArchiveMode]::Create)
+
+# Get all files in www recursively
+$filesToZip = Get-ChildItem -Path $wwwDir -Recurse | Where-Object { -not $_.PSIsContainer }
+
+foreach ($file in $filesToZip) {
+    # Calculate relative path and replace \ with /
+    $relativePath = $file.FullName.Substring((Get-Item $wwwDir).FullName.Length + 1).Replace("\", "/")
+    
+    # Create entry
+    $entry = $zipFile.CreateEntry($relativePath)
+    $entryStream = $entry.Open()
+    $fileStream = [System.IO.File]::OpenRead($file.FullName)
+    $fileStream.CopyTo($entryStream)
+    
+    $fileStream.Close()
+    $entryStream.Close()
+    Write-Host "  Zipped: $relativePath" -ForegroundColor Cyan
+}
+
+$zipFile.Dispose()
 
 Write-Host ""
-Write-Host "Basarili! bundle.zip v$version icin olusturuldu." -ForegroundColor Green
-Write-Host "GitHub Releases v$version tagine yukleyin." -ForegroundColor Yellow
+Write-Host "SUCCESS! bundle.zip created for v$version with / separators." -ForegroundColor Green
+Write-Host "Please upload bundle.zip to GitHub Releases v$version tag." -ForegroundColor Yellow
