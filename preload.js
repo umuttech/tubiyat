@@ -6,5 +6,6 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('api', {
   getConfig: () => ipcRenderer.invoke('get-config'),
   startUpdate: () => ipcRenderer.invoke('start-update'),
-  onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (event, data) => callback(data))
+  onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (event, data) => callback(data)),
+  onUpdateProgress: (callback) => ipcRenderer.on('update-progress', (event, data) => callback(data))
 });

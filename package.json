@@ -1,7 +1,7 @@
 {
   "name": "tubiyat",
   "productName": "TÜBİYAT",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "Tübiyat",
   "main": "main.js",
   "scripts": {
@@ -19,12 +19,12 @@
       "index.html",
       "script.js",
       "style.css",
-      "config.js",
-      "arkaplan.mp3",
-      "dogru.mp3",
-      "geri_sayim.mp3",
-      "yanlis.mp3",
-      "icon.png"
+      "appConfig.js",
+      "about.txt",
+      "version.json",
+      "icon.png",
+      "images/**",
+      "sounds/**"
     ],
     "win": {
       "target": "nsis",

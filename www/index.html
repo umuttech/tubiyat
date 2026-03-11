@@ -314,7 +314,7 @@
 
             <div class="theme-grid">
                 <div class="theme-card" data-theme="dark">
-                    <div class="theme-preview" style="background-image: url('dark.png');"></div>
+                    <div class="theme-preview" style="background-image: url('images/dark.png');"></div>
                     <span>Koyu</span>
                 </div>
                 <div class="theme-card" data-theme="light">
@@ -322,15 +322,15 @@
                     <span>Açık</span>
                 </div>
                 <div class="theme-card" data-theme="sakura">
-                    <div class="theme-preview" style="background-image: url('sakura.png');"></div>
+                    <div class="theme-preview" style="background-image: url('images/sakura.png');"></div>
                     <span>Sakura</span>
                 </div>
                 <div class="theme-card" data-theme="forest">
-                    <div class="theme-preview" style="background-image: url('orman.png');"></div>
+                    <div class="theme-preview" style="background-image: url('images/orman.png');"></div>
                     <span>Orman</span>
                 </div>
                 <div class="theme-card" data-theme="sunrise">
-                    <div class="theme-preview" style="background-image: url('sunrise.png');"></div>
+                    <div class="theme-preview" style="background-image: url('images/sunrise.png');"></div>
                     <span>Gün Doğumu</span>
                 </div>
             </div>
@@ -448,45 +448,6 @@
         </div>
     </div>
 
-    <!-- Update Available Modal -->
-    <div id="updateModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[300] p-4 text-primary">
-        <div
-            class="bg-mat-dark border-2 border-blue-500 rounded-xl shadow-2xl max-w-md w-full p-8 text-center relative overflow-hidden glass-panel">
-            <!-- Background Glow -->
-            <div class="absolute inset-0 bg-blue-600 opacity-10 blur-xl"></div>
-
-            <div class="relative z-10">
-                <div class="text-6xl mb-4">🚀</div>
-                <h2 class="text-3xl font-bold mb-2">Yeni Güncelleme!</h2>
-                <p id="updateMessage" class="text-secondary mb-8 text-lg">
-                    Daha iyi bir deneyim için uygulamanın yeni sürümü mevcut. Lütfen güncelleyin.
-                </p>
-
-                <div class="bg-black/20 rounded-lg p-4 mb-8 border border-gray-700/50">
-                    <div class="flex justify-between text-sm mb-2">
-                        <span class="text-secondary">Mevcut Sürüm:</span>
-                        <span id="currentVersionDisplay" class="text-red-400 font-mono font-bold">1.0.0</span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-secondary">Yeni Sürüm:</span>
-                        <span id="newVersionDisplay" class="text-green-400 font-mono font-bold">1.0.1</span>
-                    </div>
-                </div>
-
-                <a id="updateLink" href="#" target="_blank"
-                    class="block w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Güncellemeyi İndir
-                </a>
-            </div>
-        </div>
-    </div>
-
     <!-- Admin Panel Modal (Central Dashboard) -->
     <div id="adminPanelModal"
         class="hidden fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[220] p-4 text-primary">
@@ -597,17 +558,31 @@
 
 
     <!-- OTA Update Modal -->
-    <div id="updateModal" class="hidden fixed inset-0 bg-black/60 opacity-90 flex items-center justify-center z-[500] p-4">
-        <div class="bg-mat-dark p-8 rounded-2xl shadow-2xl max-w-md w-full glass-panel relative animate-bounceIn text-center border border-blue-500/30">
+    <div id="updateModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[500] p-4">
+        <div class="bg-mat-dark p-8 rounded-2xl shadow-2xl max-w-md w-full glass-panel relative text-center border border-blue-500/30">
             <div class="text-6xl mb-4">🚀</div>
             <h2 class="text-3xl font-bold text-primary mb-2">Yeni Güncelleme!</h2>
-            <p class="text-secondary mb-8 text-lg">Daha iyi bir deneyim için uygulamanın yeni sürümü mevcut. Lütfen güncelleyin.</p>
+            <p class="text-secondary mb-6 text-base">Daha iyi bir deneyim için uygulamanın yeni sürümü mevcut. Lütfen güncelleyin.</p>
             
             <div class="space-y-4">
                 <button id="updateLink" 
-                   class="w-full inline-block px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] transform hover:scale-105 active:scale-95">
+                   class="w-full inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] transform hover:scale-105 active:scale-95">
                    <span>🚀</span> Güncellemeyi İndir
                 </button>
+
+                <!-- Progress Bar (hidden until update starts) -->
+                <div id="updateProgressContainer" class="hidden">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-secondary font-medium">İndirme İlerlemesi</span>
+                        <span id="updateProgressText" class="text-xs font-bold text-blue-400 font-mono">%0</span>
+                    </div>
+                    <div class="w-full h-3 bg-black/30 rounded-full overflow-hidden border border-blue-500/20">
+                        <div id="updateProgressBar"
+                             style="width: 0%; transition: width 0.4s ease;"
+                             class="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.7)]"
+                        ></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

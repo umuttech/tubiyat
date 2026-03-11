@@ -132,16 +132,37 @@ app.whenReady().then(() => {
 
         const remoteVersionData = await fetchRemoteData(VERSION_URL);
         const remoteVersion = JSON.parse(remoteVersionData.toString());
-        const filesToUpdate = remoteVersion.files || ['index.html', 'script.js', 'style.css', 'version.json'];
+        const filesToUpdate = remoteVersion.files || [
+          'index.html', 'script.js', 'style.css', 'appConfig.js', 'version.json', 'about.txt',
+          'images/dark.png', 'images/white.png', 'images/sakura.png', 'images/orman.png', 'images/sunrise.png',
+          'sounds/arkaplan.mp3', 'sounds/dogru.mp3', 'sounds/geri_sayim.mp3', 'sounds/yanlis.mp3'
+        ];
+
+        const total = filesToUpdate.length;
+        let completed = 0;
 
         for (const fileName of filesToUpdate) {
           const fileUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${fileName}`;
           const fileBuffer = await fetchRemoteData(fileUrl);
           const filePath = path.join(UPDATE_PATH, fileName);
 
-          // Write file (ensure dir exists if needed)
+          // Ensure subdirectory exists (e.g. images/, sounds/)
+          const fileDir = path.dirname(filePath);
+          if (!fs.existsSync(fileDir)) {
+            fs.mkdirSync(fileDir, { recursive: true });
+          }
+
           fs.writeFileSync(filePath, fileBuffer);
-          console.log(`Updated in userData: ${fileName}`);
+          completed++;
+          console.log(`[${completed}/${total}] Updated: ${fileName}`);
+
+          // Send progress to renderer
+          if (mainWindow) {
+            mainWindow.webContents.send('update-progress', {
+              percent: Math.round((completed / total) * 100),
+              file: fileName
+            });
+          }
         }
 
         console.log("All files updated in userData. Restarting...");
@@ -154,6 +175,7 @@ app.whenReady().then(() => {
         return { success: false, error: error.message };
       }
     });
+
   } catch (e) {
     console.error("IPC Registration Error:", e.message);
   }

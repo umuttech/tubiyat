@@ -54,10 +54,10 @@ let explainButton;
 let nextQuestionTimeout = null;
 
 // --- SES DEĞİŞKENLERİ ---
-const correctSound = new Audio('dogru.mp3');
-const wrongSound = new Audio('yanlis.mp3');
-const countdownSound = new Audio('geri_sayim.mp3');
-const backgroundMusic = new Audio('arkaplan.mp3');
+const correctSound = new Audio('sounds/dogru.mp3');
+const wrongSound = new Audio('sounds/yanlis.mp3');
+const countdownSound = new Audio('sounds/geri_sayim.mp3');
+const backgroundMusic = new Audio('sounds/arkaplan.mp3');
 
 backgroundMusic.loop = true;
 backgroundMusic.volume = 0.3;
@@ -1665,7 +1665,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.0.6"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.0.7"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
@@ -1697,56 +1697,111 @@ function showUpdateModal(newVersion) {
     const modal = document.getElementById('updateModal');
     if (!modal) return;
 
-    document.getElementById('currentVersionDisplay').textContent = APP_VERSION;
-    document.getElementById('newVersionDisplay').textContent = newVersion;
+    // Reset progress bar state
+    const progressContainer = document.getElementById('updateProgressContainer');
+    const progressBar = document.getElementById('updateProgressBar');
+    const progressText = document.getElementById('updateProgressText');
+    if (progressContainer) progressContainer.classList.add('hidden');
+    if (progressBar) progressBar.style.width = '0%';
+    if (progressText) progressText.textContent = '%0';
 
     const linkBtn = document.getElementById('updateLink');
+    linkBtn.innerHTML = '<span>🚀</span> Güncellemeyi İndir';
+    linkBtn.style.pointerEvents = 'auto';
+    linkBtn.style.opacity = '1';
     
     linkBtn.onclick = async (e) => {
         e.preventDefault();
-        linkBtn.innerHTML = "<span>🔄</span> Güncelleniyor...";
-        linkBtn.style.pointerEvents = "none";
-        linkBtn.style.opacity = "0.7";
+        linkBtn.style.pointerEvents = 'none';
+        linkBtn.style.opacity = '0.5';
 
         // --- DESKTOP (Electron) ---
         if (window.api && window.api.startUpdate) {
+            // Show progress bar for desktop
+            if (progressContainer) progressContainer.classList.remove('hidden');
+            linkBtn.innerHTML = '<span>🔄</span> Güncelleniyor...';
+
+            // Listen for progress events from main process
+            if (window.api.onUpdateProgress) {
+                window.api.onUpdateProgress((data) => {
+                    const pct = Math.round(data.percent);
+                    if (progressBar) progressBar.style.width = pct + '%';
+                    if (progressText) progressText.textContent = '%' + pct;
+                });
+            } else {
+                // Simulate progress if no IPC progress events
+                let fakeProgress = 0;
+                const fakeInterval = setInterval(() => {
+                    fakeProgress = Math.min(fakeProgress + Math.random() * 8, 90);
+                    if (progressBar) progressBar.style.width = Math.round(fakeProgress) + '%';
+                    if (progressText) progressText.textContent = '%' + Math.round(fakeProgress);
+                }, 400);
+                window._updateFakeInterval = fakeInterval;
+            }
+
             try {
                 const result = await window.api.startUpdate();
+                if (window._updateFakeInterval) clearInterval(window._updateFakeInterval);
                 if (result && !result.success) {
                     throw new Error(result.error);
                 }
+                // Show 100% before restart
+                if (progressBar) progressBar.style.width = '100%';
+                if (progressText) progressText.textContent = '%100';
             } catch (err) {
-                console.error("Desktop update error:", err);
-                alert("Güncelleme başarısız: " + (err.message || err));
-                linkBtn.innerHTML = "<span>⚠️</span> Tekrar Dene";
-                linkBtn.style.pointerEvents = "auto";
-                linkBtn.style.opacity = "1";
+                if (window._updateFakeInterval) clearInterval(window._updateFakeInterval);
+                console.error('Desktop update error:', err);
+                alert('Güncelleme başarısız: ' + (err.message || err));
+                if (progressContainer) progressContainer.classList.add('hidden');
+                linkBtn.innerHTML = '<span>⚠️</span> Tekrar Dene';
+                linkBtn.style.pointerEvents = 'auto';
+                linkBtn.style.opacity = '1';
             }
         } 
         // --- MOBILE (Capacitor) ---
         else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
+            if (progressContainer) progressContainer.classList.remove('hidden');
+            linkBtn.innerHTML = '<span>🔄</span> İndiriliyor...';
+
             try {
                 const { CapacitorUpdater } = window.Capacitor.Plugins;
-                const updateUrl = `https://github.com/umuttech/tubiyat/raw/main/bundle.zip?t=` + new Date().getTime();
+                // GitHub Releases URL formatı (raw değil releases kullan)
+                const updateUrl = `https://github.com/umuttech/tubiyat/releases/download/v${newVersion}/bundle.zip?t=` + new Date().getTime();
                 
+                // CapacitorUpdater download event ile ilerleme takibi
+                const progressListener = await CapacitorUpdater.addListener('download', (info) => {
+                    const pct = Math.round(info.percent);
+                    if (progressBar) progressBar.style.width = pct + '%';
+                    if (progressText) progressText.textContent = '%' + pct;
+                });
+
                 const update = await CapacitorUpdater.download({
                     url: updateUrl,
                     version: newVersion
                 });
-                
-                await CapacitorUpdater.set({ id: update.id });
+
+                progressListener.remove();
+
+                // %100 göster ve yükle
+                if (progressBar) progressBar.style.width = '100%';
+                if (progressText) progressText.textContent = '%100';
+
+                setTimeout(async () => {
+                    await CapacitorUpdater.set({ id: update.id });
+                }, 500);
+
             } catch (error) {
-                console.error("Mobil güncelleme hatası:", error);
-                const errorMsg = error.message || "Bilinmeyen hata";
+                console.error('Mobil güncelleme hatası:', error);
+                const errorMsg = error.message || 'Bilinmeyen hata';
                 alert(`Mobil güncelleme başarısız!\n\nHata: ${errorMsg}\n\nLütfen internet bağlantınızı kontrol edin veya manuel olarak güncelleyin.`);
-                
-                linkBtn.innerHTML = "<span>⚠️</span> Tekrar Dene";
-                linkBtn.style.pointerEvents = "auto";
-                linkBtn.style.opacity = "1";
+                if (progressContainer) progressContainer.classList.add('hidden');
+                linkBtn.innerHTML = '<span>⚠️</span> Tekrar Dene';
+                linkBtn.style.pointerEvents = 'auto';
+                linkBtn.style.opacity = '1';
             }
         } else {
-            // Hiçbiri yoksa (PWA/Web), GitHub Release sayfasına yönlendir
-            window.open(`https://github.com/umuttech/tubiyat/releases/tag/${newVersion}`, '_blank');
+            // PWA/Web — GitHub Release sayfasına yönlendir
+            window.open(`https://github.com/umuttech/tubiyat/releases/tag/v${newVersion}`, '_blank');
         }
     };
 
