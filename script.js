@@ -82,14 +82,26 @@ function toggleMute() {
         if (menuSoundText) menuSoundText.textContent = 'Sesi Kapat';
 
         if (!soundsLoaded) {
-            try {
-                correctSound.load();
-                wrongSound.load();
-                countdownSound.load();
-                backgroundMusic.load();
-            } catch (e) {
-                console.warn("Ses yükleme hatası:", e);
-            }
+            console.log("Sesler ilk kez yükleniyor (warm-up)...");
+            const audioElements = [correctSound, wrongSound, countdownSound, backgroundMusic];
+            
+            audioElements.forEach(audio => {
+                try {
+                    audio.load();
+                    // Mobil cihazlar için sessiz bir "play-pause" yaparak kilidi açıyoruz (warm-up)
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            audio.pause();
+                            audio.currentTime = 0;
+                        }).catch(() => {
+                            // İlk etkileşimden önce çalmaya izin verilmezse catch'e düşer, normaldir
+                        });
+                    }
+                } catch (e) {
+                    console.warn("Ses warm-up hatası:", e);
+                }
+            });
             soundsLoaded = true;
         }
 
@@ -1328,11 +1340,8 @@ async function endQuiz() {
         backgroundMusic.pause();
         backgroundMusic.currentTime = 0;
 
-        // ✨ YENİ: Giriş ekranına dönerken ses butonunu da resetle
-        isMuted = true; // Sesi tekrar kapat
-        soundsLoaded = false; // Yeni giriş için sesleri "yüklenmemiş" say
-        if (menuSoundIcon) menuSoundIcon.textContent = '🔇';
-        if (menuSoundText) menuSoundText.textContent = 'Sesi Aç';
+        // --- SES DURUMUNU KORUYORUZ (SIFIRLAMA KALDIRILDI) ---
+        // Kullanıcı sesi açmışsa açık, kapatmışsa kapalı kalmaya devam edecek.
 
         // Clear the name input field
         nameInput.value = '';
@@ -1456,16 +1465,23 @@ async function callGeminiAPI(prompt, retries = 3, delay = 1000) {
  * Hata yakalamalı güvenli ses çalma fonksiyonu (Efektler için)
  */
 function playSound(audioElement) {
-    // ✨ YENİ: Ses kapalıysa hiçbir şey çalma
+    // Ses kapalıysa hiçbir şey çalma
     if (isMuted) return;
 
-    audioElement.currentTime = 0; // Sesi başa sar
-    const playPromise = audioElement.play();
+    try {
+        if (!audioElement.paused) {
+            audioElement.pause();
+        }
+        audioElement.currentTime = 0; // Sesi başa sar
+        const playPromise = audioElement.play();
 
-    if (playPromise !== undefined) {
-        playPromise.catch(error => {
-            console.error("Ses efekti çalma hatası:", error);
-        });
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.warn("Ses efekti oynatılamadı (muhtemelen kullanıcı etkileşimi bekleniyor):", error);
+            });
+        }
+    } catch (e) {
+        console.error("playSound hatası:", e);
     }
 }
 
@@ -1665,7 +1681,7 @@ window.deleteAllQuestions = async () => {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.0.7"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.0.8"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
