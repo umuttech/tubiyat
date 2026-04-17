@@ -1,4 +1,7 @@
 {
+    "3.1.7": [
+        "Windows / PC sürümünde Yenilikler ekranının dosya protokolü kısıtlamasından gösterilememesi (file:// fetch hatası) HTTPS protokolüne geçilerek çözüldü."
+    ],
     "3.1.6": [
         "Windows / PC sürümünde Yenilikler ekranının eksik dosyadan kaynaklı gösterilememe sorunu (OTA hot-update dizin eksikliği) giderildi.",
         "Mobil tarafta arka plan klasör yollarının kaybolması sorunu (OTA klasör kopyalama hatası) düzeltildi."
