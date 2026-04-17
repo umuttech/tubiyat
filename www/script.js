@@ -1701,7 +1701,9 @@ async function checkWhatsNew() {
         whatsNewModal.classList.remove('hidden');
 
         try {
-            const response = await fetch('changelog.json', { cache: "no-store" });
+            // file:// protokolünde fetch çalışmayacağı için (veya hata verebileceği için) her zaman sunucudan güncel changelog'u çek
+            const changelogUrl = "https://raw.githubusercontent.com/umuttech/tubiyat/main/changelog.json?t=" + Date.now();
+            const response = await fetch(changelogUrl, { cache: "no-store" });
             if (!response.ok) throw new Error("Changelog fetch error");
             const changelogData = await response.json();
 
