@@ -1,4 +1,7 @@
 {
+    "3.1.8": [
+        "Mobil (Android/iOS) cihazlarda arka plan resimlerinin görünmemesi sorunu çözüldü (background-attachment: fixed mobil uyumsuzluğu giderildi)."
+    ],
     "3.1.7": [
         "Windows / PC sürümünde Yenilikler ekranının dosya protokolü kısıtlamasından gösterilememesi (file:// fetch hatası) HTTPS protokolüne geçilerek çözüldü."
     ],
