@@ -486,7 +486,10 @@ window.onload = async () => {
             splashScreen.style.opacity = '0';
             setTimeout(() => {
                 splashScreen.classList.add('hidden');
+                checkWhatsNew(); // YENİ: Sürüm yenilikleri kontrolü
             }, 1000); // Wait for transition duration
+        } else {
+             checkWhatsNew();
         }
     }, 2000); // Show for 2 seconds
 
@@ -1678,10 +1681,58 @@ window.deleteAllQuestions = async () => {
 };
 
 // -------------------------------------------------------------------------
+// 🆕 YENİLİKLER EKRANI (WHAT'S NEW) 🆕
+// -------------------------------------------------------------------------
+
+async function checkWhatsNew() {
+    const LAST_SEEN_KEY = 'last_seen_changelog_version';
+    const lastSeen = localStorage.getItem(LAST_SEEN_KEY);
+
+    if (lastSeen !== APP_VERSION) {
+        // Yeni bir sürüm varsa veya hiç girilmemişse
+        const whatsNewModal = document.getElementById('whatsNewModal');
+        const whatsNewContent = document.getElementById('whatsNewContent');
+        const whatsNewVersion = document.getElementById('whatsNewVersion');
+        const closeWhatsNewBtn = document.getElementById('closeWhatsNewBtn');
+
+        if (!whatsNewModal) return;
+
+        whatsNewVersion.textContent = 'v' + APP_VERSION;
+        whatsNewModal.classList.remove('hidden');
+
+        try {
+            const response = await fetch('changelog.json?t=' + Date.now());
+            if (!response.ok) throw new Error("Changelog fetch error");
+            const changelogData = await response.json();
+
+            let targetNotes = changelogData[APP_VERSION];
+            if (!targetNotes) {
+                whatsNewContent.innerHTML = `<p class="text-secondary text-center p-4">Genel geliştirmeler ve kararlılık düzeltmeleri yapıldı.</p>`;
+            } else {
+                whatsNewContent.innerHTML = targetNotes.map(note => 
+                    `<div class="flex items-start gap-3 bg-black/20 p-3 rounded-lg border border-gray-700/50">
+                        <span class="text-green-400 mt-0.5">✅</span>
+                        <p class="text-sm text-gray-300 leading-relaxed">${note}</p>
+                    </div>`
+                ).join('');
+            }
+        } catch (e) {
+            console.error("Yenilikler yüklenemedi:", e);
+            whatsNewContent.innerHTML = `<p class="text-secondary text-center p-4">Genel geliştirmeler ve kararlılık düzeltmeleri yapıldı.</p>`;
+        }
+
+        closeWhatsNewBtn.onclick = () => {
+            whatsNewModal.classList.add('hidden');
+            localStorage.setItem(LAST_SEEN_KEY, APP_VERSION);
+        };
+    }
+}
+
+// -------------------------------------------------------------------------
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.1.3"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.1.4"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);

@@ -19,7 +19,7 @@ New-Item -ItemType Directory -Path $wwwPath | Out-Null
 
 Write-Host "Preparing v$version..." -ForegroundColor Blue
 
-$mainFiles = @("index.html", "script.js", "style.css", "appConfig.js", "version.json", "about.txt")
+$mainFiles = @("index.html", "script.js", "style.css", "appConfig.js", "version.json", "about.txt", "changelog.json")
 foreach ($file in $mainFiles) {
     $srcFile = Join-Path $sourceRoot $file
     if (Test-Path $srcFile) {
