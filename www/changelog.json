@@ -1,13 +1,9 @@
 {
-    "3.1.4": [
+    "3.1.5": [
+        "Windows / PC sürümünde Yenilikler ekranının gösterilmesini engelleyen önbellek sorunu giderildi.",
+        "Ağ optimizasyonları yapıldı.",
         "Yönetici girişi ekranına Caps Lock uyarısı eklendi.",
         "Mobil ve PC sürümleri birleştirilerek eşzamanlı sürüm numarasına geçirildi.",
         "Genel hata düzeltmeleri ve optimizasyonlar sağlandı."
-    ],
-    "3.1.2": [
-        "Soru bankası, skor sistemi ve Firebase entegrasyonu tamamen baştan yazıldı.",
-        "Yeni yönetici paneli (Soru ekleme, düzenleme, silme, kullanıcı yönetimi) eklendi.",
-        "Cihazlar arası OTA (Over-The-Air) güncelleme sistemi entegre edildi.",
-        "Mobil uygulama uyumluluğu artırıldı ve hata raporlama altyapısı kuruldu."
     ]
 }
