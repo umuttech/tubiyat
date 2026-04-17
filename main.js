@@ -133,7 +133,7 @@ app.whenReady().then(() => {
         const remoteVersionData = await fetchRemoteData(VERSION_URL);
         const remoteVersion = JSON.parse(remoteVersionData.toString());
         const filesToUpdate = remoteVersion.files || [
-          'index.html', 'script.js', 'style.css', 'appConfig.js', 'version.json', 'about.txt',
+          'index.html', 'script.js', 'style.css', 'appConfig.js', 'version.json', 'changelog.json', 'about.txt',
           'images/dark.png', 'images/white.png', 'images/sakura.png', 'images/orman.png', 'images/sunrise.png',
           'sounds/arkaplan.mp3', 'sounds/dogru.mp3', 'sounds/geri_sayim.mp3', 'sounds/yanlis.mp3'
         ];

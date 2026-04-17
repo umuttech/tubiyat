@@ -1,5 +1,5 @@
 {
-    "version": "3.1.5",
+    "version": "3.1.6",
     "buildDate": "2026-04-17",
     "files": [
         "index.html",
@@ -7,6 +7,7 @@
         "style.css",
         "appConfig.js",
         "version.json",
+        "changelog.json",
         "about.txt",
         "images/dark.png",
         "images/white.png",

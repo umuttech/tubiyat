@@ -1,4 +1,8 @@
 {
+    "3.1.6": [
+        "Windows / PC sürümünde Yenilikler ekranının eksik dosyadan kaynaklı gösterilememe sorunu (OTA hot-update dizin eksikliği) giderildi.",
+        "Mobil tarafta arka plan klasör yollarının kaybolması sorunu (OTA klasör kopyalama hatası) düzeltildi."
+    ],
     "3.1.5": [
         "Windows / PC sürümünde Yenilikler ekranının gösterilmesini engelleyen önbellek sorunu giderildi.",
         "Ağ optimizasyonları yapıldı.",
