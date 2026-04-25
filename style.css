@@ -130,6 +130,12 @@ textarea {
     color: var(--text-color) !important;
 }
 
+/* Native select dropdown option styling */
+select option {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+}
+
 .btn-primary,
 #loginButton,
 #confirmResetButton,

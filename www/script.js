@@ -52,6 +52,7 @@ let currentPoints = 0; // Toplam puan
 let timerInterval = null;
 let explainButton;
 let nextQuestionTimeout = null;
+let currentTimeLeft = 0; // Kalan süreyi takip etmek için
 
 // --- SES DEĞİŞKENLERİ ---
 const correctSound = new Audio('sounds/dogru.mp3');
@@ -63,7 +64,7 @@ backgroundMusic.loop = true;
 backgroundMusic.volume = 0.3;
 
 
-let isMuted = true; // Başlangıçta ses kapalı
+let isMuted = false; // Ses otomatik açık
 let soundsLoaded = false;
 let isGodMode = false; // ⚡ YÖNETİCİ GİRİŞİ YAPILDI MI? (Single Sign-On)
 
@@ -84,7 +85,7 @@ function toggleMute() {
         if (!soundsLoaded) {
             console.log("Sesler ilk kez yükleniyor (warm-up)...");
             const audioElements = [correctSound, wrongSound, countdownSound, backgroundMusic];
-            
+
             audioElements.forEach(audio => {
                 try {
                     audio.load();
@@ -124,13 +125,39 @@ function toggleMute() {
     }
 }
 
+function initBackgroundMusic() {
+    const playMusic = () => {
+        if (!soundsLoaded) {
+            const audioElements = [correctSound, wrongSound, countdownSound, backgroundMusic];
+            audioElements.forEach(audio => {
+                try {
+                    audio.load();
+                } catch (e) { }
+            });
+            soundsLoaded = true;
+        }
+        backgroundMusic.play().catch(error => {
+            console.warn("Autoplay engellendi, etkileşim bekleniyor:", error);
+        });
+    };
+
+    playMusic();
+
+    const onInteract = () => {
+        playMusic();
+        document.removeEventListener('click', onInteract);
+        document.removeEventListener('keydown', onInteract);
+        document.removeEventListener('touchstart', onInteract);
+    };
+    document.addEventListener('click', onInteract);
+    document.addEventListener('keydown', onInteract);
+    document.addEventListener('touchstart', onInteract);
+}
 
 // --- SORU BANKASI (EDEBİYAT) ---
 // --- SORU BANKASI (EDEBİYAT) ---
 // --- DYNAMIC QUESTION BANKS (Loaded from Firestore) ---
-let easyQuestionBank = [];
-let mediumQuestionBank = [];
-let hardQuestionBank = [];
+let level1QuestionBank = [];
 let level2QuestionBank = [];
 let level3QuestionBank = [];
 // Backup for migration (Original hardcoded data renamed and removed as it's now all dynamic from Firestore)
@@ -489,7 +516,7 @@ window.onload = async () => {
                 checkWhatsNew(); // YENİ: Sürüm yenilikleri kontrolü
             }, 1000); // Wait for transition duration
         } else {
-             checkWhatsNew();
+            checkWhatsNew();
         }
     }, 2000); // Show for 2 seconds
 
@@ -613,7 +640,7 @@ window.onload = async () => {
         // Direkt aç (Zaten yetki var)
         document.getElementById('adminPanelModal').classList.add('hidden'); // Paneli kapat
         questionManagerModal.classList.remove('hidden');
-        loadQuestionsForManager('easy');
+        loadQuestionsForManager('level1');
     });
 
     // 3. Veritabanı Sıfırla
@@ -687,7 +714,12 @@ window.onload = async () => {
             await Promise.all(deletePromises);
 
             console.log(`${selectedIds.length} kullanıcı başarıyla silindi.`);
+
+            // Her iki modalı da kapat ve odağı giriş kutusuna ver
             deleteModal.classList.add('hidden');
+            document.getElementById('adminPanelModal').classList.add('hidden');
+            isGodMode = false; // Güvenliği geri aç
+            setTimeout(() => nameInput.focus(), 100);
 
             // Kullanıcıya görsel geri bildirim
             alert("Seçilen kullanıcılar başarıyla silindi.");
@@ -702,8 +734,14 @@ window.onload = async () => {
 
     document.getElementById('cancelDeleteUserButton').addEventListener('click', () => {
         document.getElementById('deleteUserModal').classList.add('hidden');
+        document.getElementById('adminPanelModal').classList.add('hidden');
+        isGodMode = false;
+        setTimeout(() => nameInput.focus(), 100);
     });
 
+
+    // Arka plan müziğini başlat
+    initBackgroundMusic();
 
     // Firebase başlama
     try {
@@ -1090,35 +1128,25 @@ function startQuiz() {
     // Helper: Filter out seen questions
     const filterSeen = (bank) => bank.filter(q => !currentUserStats.seenQuestions.includes(q.id));
 
-    if (currentUserStats.medals >= 2) {
-        // --- LEVEL 3: ELITE HARD (10 Puan, 10 Saniye) ---
-        // Sadece Level 3 havuzundan, görülmemiş soruları al
-        pool = filterSeen(level3QuestionBank).map(q => ({ ...q, points: 10, time: 10 }));
-        // İstersek 10 tane ile sınırlayabiliriz
-        pool = shuffleArray(pool).slice(0, 10);
+    const buildPool = () => {
+        const l1 = filterSeen(level1QuestionBank).map(q => ({ ...q, points: q.points || 5, time: 30 }));
+        const l2 = filterSeen(level2QuestionBank).map(q => ({ ...q, points: q.points || 10, time: 30 }));
+        const l3 = filterSeen(level3QuestionBank).map(q => ({ ...q, points: q.points || 15, time: 30 }));
 
-    } else if (currentUserStats.medals === 1) {
-        // --- LEVEL 2: ADVANCED HARD (5 Puan, 15 Saniye) ---
-        // Sadece Level 2 havuzundan, görülmemiş soruları al
-        pool = filterSeen(level2QuestionBank).map(q => ({ ...q, points: 5, time: 15 }));
-        pool = shuffleArray(pool).slice(0, 10);
-
-    } else {
-        // --- LEVEL 1: STANDARD MIX ---
-        // 4 Easy (1 Puan, 20sn), 3 Medium (2 Puan, 20sn), 3 Hard (3 Puan, 15sn)
-        const fEasy = filterSeen(easyQuestionBank).map(q => ({ ...q, points: 1, time: 20 }));
-        const fMedium = filterSeen(mediumQuestionBank).map(q => ({ ...q, points: 2, time: 20 }));
-        const fHard = filterSeen(hardQuestionBank).map(q => ({ ...q, points: 3, time: 15 }));
-
-        const sEasy = shuffleArray(fEasy);
-        const sMedium = shuffleArray(fMedium);
-        const sHard = shuffleArray(fHard);
-
-        pool = [
-            ...sEasy.slice(0, 4),
-            ...sMedium.slice(0, 3),
-            ...sHard.slice(0, 3)
+        return [
+            ...shuffleArray(l1).slice(0, 3),
+            ...shuffleArray(l2).slice(0, 4),
+            ...shuffleArray(l3).slice(0, 3)
         ];
+    };
+
+    pool = buildPool();
+
+    // Eğer gösterilecek soru kalmadıysa veya 10'dan az soru kaldıysa geçmişi sıfırlayıp başa dön
+    if (pool.length < 10) {
+        console.log("Yeterli soru kalmadı (10'dan az), soru geçmişi sıfırlanıyor...");
+        currentUserStats.seenQuestions = [];
+        pool = buildPool();
     }
 
     currentQuizQuestions = shuffleArray(pool);
@@ -1169,7 +1197,7 @@ function showQuestion() {
         answersContainer.appendChild(button);
     });
 
-    startTimer(q.time || 20);
+    startTimer(q.time || 30);
 }
 
 /**
@@ -1177,14 +1205,22 @@ function showQuestion() {
  */
 function startTimer(seconds) {
     let timeLeft = seconds;
+    currentTimeLeft = timeLeft; // Modül seviyesinde takip
     const timerEl = document.getElementById('timer');
     const progressCircle = document.getElementById('timerProgressCircle');
     const totalDash = 2 * Math.PI * 28;
 
     progressCircle.setAttribute('stroke-dasharray', totalDash);
 
+    // UI'ı hemen güncelle
+    timerEl.textContent = timeLeft;
+    progressCircle.setAttribute('stroke-dashoffset', totalDash);
+    timerEl.classList.remove('text-red-500');
+    progressCircle.setAttribute('stroke', '#3B82F6');
+
     timerInterval = setInterval(() => {
         timeLeft--;
+        currentTimeLeft = timeLeft; // Kalan süreyi güncelle
         timerEl.textContent = timeLeft;
 
         const dashOffset = totalDash * (timeLeft / seconds);
@@ -1203,6 +1239,59 @@ function startTimer(seconds) {
             handleTimeUp();
         }
     }, 1000);
+}
+
+/**
+ * Kalan süreye göre bonus puan hesaplar
+ * >20 saniye → +6, 10-20 saniye → +4, <10 saniye → +2
+ */
+function getTimeBonusPoints(timeLeft) {
+    if (timeLeft > 20) return 6;
+    if (timeLeft > 10) return 4;
+    return 2;
+}
+
+/**
+ * Bonus puan kazanıldığında ekranda animasyonlu bildirim gösterir
+ */
+function showBonusToast(bonusPoints) {
+    const toast = document.createElement('div');
+    toast.textContent = `+${bonusPoints} BONUS`;
+    toast.style.cssText = [
+        'position: fixed',
+        'top: 50%',
+        'left: 50%',
+        'transform: translate(-50%, -50%) scale(0.5)',
+        'background: linear-gradient(135deg, #f59e0b, #d97706)',
+        'color: #fff',
+        'font-size: 1.6rem',
+        'font-weight: 900',
+        'letter-spacing: 0.1em',
+        'padding: 0.5rem 1.4rem',
+        'border-radius: 999px',
+        'box-shadow: 0 0 30px rgba(245,158,11,0.7)',
+        'pointer-events: none',
+        'z-index: 9999',
+        'opacity: 0',
+        'transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1)'
+    ].join(';');
+    document.body.appendChild(toast);
+
+    // Belirme animasyonu
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, -50%) scale(1)';
+        });
+    });
+
+    // Yukarı kayarak kaybolma
+    setTimeout(() => {
+        toast.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translate(-50%, -120%) scale(0.8)';
+        setTimeout(() => toast.remove(), 500);
+    }, 900);
 }
 
 /**
@@ -1256,7 +1345,13 @@ function handleAnswerClick(clickedButton, isCorrect) {
         playSound(correctSound);
 
         currentScore++; // Doğru cevap sayısı
-        currentPoints += q.points || 0; // Puan hesaplama
+        currentPoints += q.points || 0; // Temel puan
+
+        // ⏱️ SÜREYE DAYALI BONUS PUAN
+        const bonus = getTimeBonusPoints(currentTimeLeft);
+        currentPoints += bonus;
+        showBonusToast(bonus);
+
         scoreDisplay.textContent = `Puan: ${currentPoints}`;
 
         if (currentScore === 8) {
@@ -1702,7 +1797,7 @@ async function checkWhatsNew() {
 
         try {
             // file:// protokolünde fetch çalışmayacağı için (veya hata verebileceği için) her zaman sunucudan güncel changelog'u çek
-            const changelogUrl = "https://raw.githubusercontent.com/umuttech/tubiyat/main/changelog.json?t=" + Date.now();
+            const changelogUrl = "https://raw.githubusercontent.com/umuttech/novcsun/main/changelog.json?t=" + Date.now();
             const response = await fetch(changelogUrl, { cache: "no-store" });
             if (!response.ok) throw new Error("Changelog fetch error");
             const changelogData = await response.json();
@@ -1711,7 +1806,7 @@ async function checkWhatsNew() {
             if (!targetNotes) {
                 whatsNewContent.innerHTML = `<p class="text-secondary text-center p-4">Genel geliştirmeler ve kararlılık düzeltmeleri yapıldı.</p>`;
             } else {
-                whatsNewContent.innerHTML = targetNotes.map(note => 
+                whatsNewContent.innerHTML = targetNotes.map(note =>
                     `<div class="flex items-start gap-3 bg-black/20 p-3 rounded-lg border border-gray-700/50">
                         <span class="text-green-400 mt-0.5">✅</span>
                         <p class="text-sm text-gray-300 leading-relaxed">${note}</p>
@@ -1734,32 +1829,44 @@ async function checkWhatsNew() {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.1.8"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.1.9"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
-    
+
     // GitHub'dan en güncel versiyon bilgisini çek
-    const GITHUB_VERSION_URL = "https://raw.githubusercontent.com/umuttech/tubiyat/main/version.json?t=" + new Date().getTime();
-    
+    const GITHUB_VERSION_URL = "https://raw.githubusercontent.com/umuttech/novcsun/main/version.json?t=" + new Date().getTime();
+
     try {
         const response = await fetch(GITHUB_VERSION_URL, { cache: 'no-store' }); // Önbelleği önlemek için
         if (!response.ok) throw new Error("GitHub versiyon dosyası alınamadı");
-        
+
         const data = await response.json();
         const serverVersion = data.version;
-        
+
         console.log(`Sunucu Sürümü: ${serverVersion}, Yerel Sürüm: ${APP_VERSION}`);
-        
-        if (serverVersion !== APP_VERSION) {
-            console.warn("Lokal sürüm sunucu ile uyumsuz. Güncelleme denetleniyor...");
-            // Basit string karşılaştırması yerine tam eşitlik kontrolü
-            // (v2.0.4 != v2.0.3 durumu için)
+
+        // Sadece sunucu sürümü yerel sürümden daha YENİ ise güncelleme uyarısı ver
+        if (isNewerVersion(serverVersion, APP_VERSION)) {
+            console.warn("Yeni bir sürüm mevcut. Güncelleme denetleniyor...");
             showUpdateModal(serverVersion);
         }
     } catch (e) {
         console.error("Versiyon kontrolü hatası:", e);
     }
+}
+
+function isNewerVersion(remote, local) {
+    if (!remote || !local) return false;
+    const r = remote.split('.').map(Number);
+    const l = local.split('.').map(Number);
+    for (let i = 0; i < Math.max(r.length, l.length); i++) {
+        const rv = r[i] || 0;
+        const lv = l[i] || 0;
+        if (rv > lv) return true;
+        if (rv < lv) return false;
+    }
+    return false;
 }
 
 function showUpdateModal(newVersion) {
@@ -1778,7 +1885,7 @@ function showUpdateModal(newVersion) {
     linkBtn.innerHTML = '<span>🚀</span> Güncellemeyi İndir';
     linkBtn.style.pointerEvents = 'auto';
     linkBtn.style.opacity = '1';
-    
+
     linkBtn.onclick = async (e) => {
         e.preventDefault();
         linkBtn.style.pointerEvents = 'none';
@@ -1826,7 +1933,7 @@ function showUpdateModal(newVersion) {
                 linkBtn.style.pointerEvents = 'auto';
                 linkBtn.style.opacity = '1';
             }
-        } 
+        }
         // --- MOBILE (Capacitor) ---
         else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
             if (progressContainer) progressContainer.classList.remove('hidden');
@@ -1835,8 +1942,8 @@ function showUpdateModal(newVersion) {
             try {
                 const { CapacitorUpdater } = window.Capacitor.Plugins;
                 // GitHub Releases URL formatı (raw değil releases kullan)
-                const updateUrl = `https://github.com/umuttech/tubiyat/releases/download/v${newVersion}/bundle.zip?t=` + new Date().getTime();
-                
+                const updateUrl = `https://github.com/umuttech/novcsun/releases/download/v${newVersion}/bundle.zip?t=` + new Date().getTime();
+
                 // CapacitorUpdater download event ile ilerleme takibi
                 const progressListener = await CapacitorUpdater.addListener('download', (info) => {
                     const pct = Math.round(info.percent);
@@ -1870,7 +1977,7 @@ function showUpdateModal(newVersion) {
             }
         } else {
             // PWA/Web — GitHub Release sayfasına yönlendir
-            window.open(`https://github.com/umuttech/tubiyat/releases/tag/v${newVersion}`, '_blank');
+            window.open(`https://github.com/umuttech/novcsun/releases/tag/v${newVersion}`, '_blank');
         }
     };
 
@@ -1911,7 +2018,7 @@ window.adminSetVersion = async (version, url = "#") => {
 async function migrateAndLoadQuestions() {
     console.log("Sorular yükleniyor/kontrol ediliyor...");
 
-    const categories = ['easy', 'medium', 'hard', 'level2', 'level3'];
+    const categories = ['level1', 'level2', 'level3'];
 
     const usersCollectionPath = `/artifacts/${appId}/public/data/questions`;
     const qCol = collection(db, usersCollectionPath);
@@ -1942,9 +2049,7 @@ async function loadAllQuestionsFromDB() {
     const snapshot = await getDocs(qCol);
 
     // Reset arrays
-    easyQuestionBank = [];
-    mediumQuestionBank = [];
-    hardQuestionBank = [];
+    level1QuestionBank = [];
     level2QuestionBank = [];
     level3QuestionBank = [];
 
@@ -1954,19 +2059,19 @@ async function loadAllQuestionsFromDB() {
 
         // Sort into arrays
         switch (data.category) {
-            case 'easy': easyQuestionBank.push(qObj); break;
-            case 'medium': mediumQuestionBank.push(qObj); break;
-            case 'hard': hardQuestionBank.push(qObj); break;
+            case 'easy':
+            case 'medium':
+            case 'hard':
+            case 'level1':
+                level1QuestionBank.push(qObj); break;
             case 'level2': level2QuestionBank.push(qObj); break;
             case 'level3': level3QuestionBank.push(qObj); break;
-            default: easyQuestionBank.push(qObj); // Fallback
+            default: level1QuestionBank.push(qObj); // Fallback
         }
     });
 
     console.log("Sorular yüklendi:", {
-        easy: easyQuestionBank.length,
-        medium: mediumQuestionBank.length,
-        hard: hardQuestionBank.length,
+        level1: level1QuestionBank.length,
         l2: level2QuestionBank.length,
         l3: level3QuestionBank.length
     });
@@ -1998,9 +2103,11 @@ async function loadQuestionsForManager(category) {
 
     let targetArray = [];
     switch (category) {
-        case 'easy': targetArray = easyQuestionBank; break;
-        case 'medium': targetArray = mediumQuestionBank; break;
-        case 'hard': targetArray = hardQuestionBank; break;
+        case 'easy':
+        case 'medium':
+        case 'hard':
+        case 'level1':
+            targetArray = level1QuestionBank; break;
         case 'level2': targetArray = level2QuestionBank; break;
         case 'level3': targetArray = level3QuestionBank; break;
     }
@@ -2047,9 +2154,11 @@ function renderManagerList(questions) {
 window.editQuestion = (id, category) => {
     let targetArray = [];
     switch (category) {
-        case 'easy': targetArray = easyQuestionBank; break;
-        case 'medium': targetArray = mediumQuestionBank; break;
-        case 'hard': targetArray = hardQuestionBank; break;
+        case 'easy':
+        case 'medium':
+        case 'hard':
+        case 'level1':
+            targetArray = level1QuestionBank; break;
         case 'level2': targetArray = level2QuestionBank; break;
         case 'level3': targetArray = level3QuestionBank; break;
     }

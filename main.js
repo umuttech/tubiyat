@@ -4,7 +4,7 @@ const https = require('https');
 const fs = require('fs');
 
 // --- OTA UPDATE CONFIG ---
-const GITHUB_REPO = "umuttech/tubiyat";
+const GITHUB_REPO = "umuttech/novcsun";
 const VERSION_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/version.json`;
 const UPDATE_CHECK_INTERVAL = 10 * 60 * 1000; // 10 minutes
 

@@ -1,4 +1,8 @@
 {
+    "3.1.9": [
+        "Süreye dayalı bonus puan sistemi eklendi: 20 saniyeden fazla süre varken doğru cevap +6, 10-20 saniye arası +4, 10 saniyeden az +2 ekstra puan kazandırır.",
+        "Doğru cevapta bonus puan ekranda animasyonlu bildirim olarak gösterilir."
+    ],
     "3.1.8": [
         "Mobil (Android/iOS) cihazlarda arka plan resimlerinin görünmemesi sorunu çözüldü (background-attachment: fixed mobil uyumsuzluğu giderildi)."
     ],
