@@ -391,7 +391,10 @@ window.onload = async () => {
                 const aboutTab = document.querySelector('.nav-item[data-target="about"]');
                 if (aboutTab) aboutTab.click();
             } else {
-                if (settingsMenu) settingsMenu.classList.remove('active');
+                if (settingsMenu) {
+                    settingsMenu.classList.remove('active');
+                    settingsMenu.classList.add('hidden');
+                }
                 if (aboutView) aboutView.classList.remove('hidden');
             }
         });
