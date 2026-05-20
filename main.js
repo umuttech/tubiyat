@@ -106,8 +106,7 @@ function createWindow() {
   mainWindow.webContents.session.clearCache();
   mainWindow.webContents.session.clearStorageData();
 
-  // Hot-load update disabled for debugging to ensure local changes are visible
-  /*
+  // Hot-load update enabled
   const updateIndexPath = path.join(UPDATE_PATH, 'index.html');
   if (fs.existsSync(updateIndexPath)) {
     console.log("Loading from Hot-Update directory:", updateIndexPath);
@@ -115,8 +114,6 @@ function createWindow() {
   } else {
     mainWindow.loadFile('index.html');
   }
-  */
-  mainWindow.loadFile('index.html');
 
   setTimeout(checkForUpdates, 3000);
   setInterval(checkForUpdates, UPDATE_CHECK_INTERVAL);

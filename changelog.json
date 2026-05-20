@@ -1,8 +1,8 @@
 {
-    "3.2.8": [
+    "3.2.9": [
         "Kesintisiz döngü halinde çalan arka plan müziği (background audio loop) desteği entegre edildi.",
         "Otomatik oynatma engellerini aşmak için kullanıcı dostu müzik açma/kapama butonu eklendi.",
-        "Sürüm numarası 3.2.8 olarak güncellendi."
+        "Sürüm numarası 3.2.9 olarak güncellendi."
     ],
     "3.2.7": [
         "Sıralama sistemi güncellendi: Artık en son denemedeki puan ve süre baz alınıyor.",
