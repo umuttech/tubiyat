@@ -957,20 +957,36 @@ function setupLeaderboardListener() {
 function updateLeaderboard() {
     if (!leaderboardContainer) return;
 
-    // KOPYA ALARAK SIRALA (Puan ve Süre bazlı yeni sıralama)
+    // KOPYA ALARAK SIRALA (Puan azalan, süre artan, sonra isimle sabitle)
     const sortedUsers = [...(allUsers || [])].sort((a, b) => {
-        const scoreA = a.totalPoints || 0;
-        const scoreB = b.totalPoints || 0;
+        // Puanları güvenli bir şekilde Number'a çevir (örn: veritabanında "100 P" yazılmışsa 100 alır, NaN olmasını engeller)
+        let scoreA = parseFloat(a.totalPoints);
+        if (isNaN(scoreA)) scoreA = 0;
+        
+        let scoreB = parseFloat(b.totalPoints);
+        if (isNaN(scoreB)) scoreB = 0;
 
         if (scoreB !== scoreA) {
-            return scoreB - scoreA; // Birincil kriter: Puan (Azalan)
+            return scoreB - scoreA; // Puanı yüksek olan üste (azalan)
         }
 
-        // İkincil kriter: Süre (Artan - daha kısa süre üstte)
-        // Süresi olmayanları listenin sonuna atmak için büyük bir değer kullanıyoruz
-        const timeA = (a.lastTime !== undefined && a.lastTime !== null) ? a.lastTime : 999999;
-        const timeB = (b.lastTime !== undefined && b.lastTime !== null) ? b.lastTime : 999999;
-        return timeA - timeB;
+        // Süreleri güvenli bir şekilde Number'a çevir
+        let timeA = parseFloat(a.lastTime);
+        if (isNaN(timeA) || a.lastTime === null || a.lastTime === '') {
+            timeA = Number.POSITIVE_INFINITY;
+        }
+
+        let timeB = parseFloat(b.lastTime);
+        if (isNaN(timeB) || b.lastTime === null || b.lastTime === '') {
+            timeB = Number.POSITIVE_INFINITY;
+        }
+
+        if (timeA !== timeB) {
+            return timeA - timeB; // Süresi az olan üste (artan)
+        }
+
+        // Aynı puanda ve aynı sürede iseler alfabetik sırala
+        return String(a.name || '').localeCompare(String(b.name || ''), 'tr');
     });
 
     leaderboardContainer.innerHTML = "";
@@ -982,8 +998,8 @@ function updateLeaderboard() {
         leaderboardContainer.appendChild(emptyMsg);
     }
 
-    // Sadece ilk 30 kişiyi göster
-    const topUsers = sortedUsers.slice(0, 30);
+    // Tüm kullanıcıları göster
+    const topUsers = sortedUsers;
 
     topUsers.forEach((user, index) => {
         const rank = index + 1;
@@ -1830,7 +1846,7 @@ async function checkWhatsNew() {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.2.9"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.3.0"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
